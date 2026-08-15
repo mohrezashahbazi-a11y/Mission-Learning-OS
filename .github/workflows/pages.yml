@@ -29,9 +29,10 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          tag = '<script src="src/runtime.js"></script>'
-          if tag not in s:
-              s = s.replace('</body>', tag + '</body>')
+          import re
+          s = re.sub(r'<script src="src/runtime\.js(?:\?v=[^"]+)?"></script>', '', s)
+          tag = '<script src="src/runtime.js?v=0.3"></script>'
+          s = s.replace('</body>', tag + '</body>')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Setup Pages
