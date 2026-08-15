@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Inject authoritative runtime
+      - name: Inject authoritative runtime controllers
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -32,7 +32,13 @@ jobs:
           import re
           s = re.sub(r'<script src="src/runtime\.js(?:\?v=[^"]+)?"></script>', '', s)
           s = re.sub(r'<script src="src/review-runtime\.js(?:\?v=[^"]+)?"></script>', '', s)
-          s = s.replace('</body>', '<script src="src/runtime.js?v=0.4"></script></body>')
+          s = re.sub(r'<script src="src/application-readiness\.js(?:\?v=[^"]+)?"></script>', '', s)
+          tags = [
+              '<script src="src/runtime.js?v=0.4"></script>',
+              '<script src="src/application-readiness.js?v=0.1"></script>'
+          ]
+          for tag in tags:
+              s = s.replace('</body>', tag + '</body>')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Setup Pages
