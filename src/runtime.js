@@ -1,5 +1,5 @@
-// Mission Learning OS — authoritative runtime v0.6
-// Zero-decision execution: queue + completion + energy + spaced review + application readiness + dependencies.
+// Mission Learning OS — authoritative runtime v0.7
+// Zero-decision execution: queue + completion + energy + spaced review + application readiness + dependencies + timeline urgency.
 (() => {
   const KEY='missionOSState';
   const state=JSON.parse(localStorage.getItem(KEY)||'{}');
@@ -29,6 +29,7 @@
   const blockedBy=m=>dependencyTopicsFor(m).filter(topic=>!missionDoneForTopic(topic));
   const profile=()=>state.energy>=8?{name:'high',limit:4,cap:150}:state.energy>=5?{name:'normal',limit:4,cap:120}:state.energy>=3?{name:'low',limit:3,cap:75}:{name:'recovery',limit:2,cap:45};
   const policyFor=m=>window.missionOSApplicationCore?.getDomainPolicy?.(m.subject)||'not_yet_classified';
+  const timelineUrgency=m=>{const t=window.missionOSTimeline;if(!t||policyFor(m)!=='required_before_application')return 0;return t.urgency?.(new Date(t.applicationTarget))||0;};
   const score=m=>{
     if(m.isReview)return 80+(m.priorityBoost||0);
     if(!ready(m))return -1e9;
@@ -36,7 +37,7 @@
     const d=days(m.deadline);
     if(d<=7)s+=45;else if(d<=30)s+=32;else if(d<=90)s+=20;else if(d<=180)s+=10;
     const policy=policyFor(m);
-    if(policy==='required_before_application')s+=28;
+    if(policy==='required_before_application')s+=28+timelineUrgency(m);
     else if(policy==='deepening_after_application')s-=12;
     else s+=8;
     if(m.energy<=state.energy)s+=8;else s-=(m.energy-state.energy)*5;
