@@ -30,12 +30,12 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
           import re
-          s = re.sub(r'<script src="src/runtime\.js(?:\?v=[^"]+)?"></script>', '', s)
-          s = re.sub(r'<script src="src/review-runtime\.js(?:\?v=[^"]+)?"></script>', '', s)
-          s = re.sub(r'<script src="src/application-readiness\.js(?:\?v=[^"]+)?"></script>', '', s)
+          for name in ['runtime','review-runtime','application-readiness','application-core']:
+              s = re.sub(rf'<script src="src/{name}\\.js(?:\\?v=[^"]+)?"></script>', '', s)
           tags = [
-              '<script src="src/runtime.js?v=0.4"></script>',
-              '<script src="src/application-readiness.js?v=0.1"></script>'
+              '<script src="src/application-core.js?v=0.1"></script>',
+              '<script src="src/application-readiness.js?v=0.1"></script>',
+              '<script src="src/runtime.js?v=0.5"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
