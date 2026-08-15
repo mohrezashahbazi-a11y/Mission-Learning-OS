@@ -35,7 +35,7 @@ jobs:
           tags = [
               '<script src="src/application-core.js?v=0.1"></script>',
               '<script src="src/application-dependencies.js?v=0.1"></script>',
-              '<script src="src/application-readiness.js?v=0.1"></script>',
+              '<script src="src/application-readiness.js?v=0.2"></script>',
               '<script src="src/timeline.js?v=0.1"></script>',
               '<script src="src/runtime.js?v=0.7"></script>'
           ]
