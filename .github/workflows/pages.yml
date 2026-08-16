@@ -19,6 +19,7 @@ env:
   MASTERY_ENGINE_VERSION: '1.0'
   MASTERY_UI_VERSION: '1.0'
   GOOGLE_SYNC_VERSION: '1.0'
+  CLOUD_FOUNDATION_VERSION: '1.1'
 
 jobs:
   deploy:
@@ -36,7 +37,7 @@ jobs:
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-sync','google-drive-sync-ui']
+          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync','google-drive-sync-ui','cloud-foundation']
           for name in names:
               s = re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>', '', s)
           tags = [
@@ -74,7 +75,8 @@ jobs:
               '<script src="src/mastery-evidence-adapter.js?v=1.0"></script>',
               '<script src="src/mastery-adaptive-bridge.js?v=1.0"></script>',
               '<script src="src/google-drive-sync.js?v=1.0"></script>',
-              '<script src="src/google-drive-sync-ui.js?v=1.0"></script>'
+              '<script src="src/google-drive-sync-ui.js?v=1.0"></script>',
+              '<script src="src/cloud-foundation.js?v=1.1"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
