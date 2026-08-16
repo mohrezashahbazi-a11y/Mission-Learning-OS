@@ -15,18 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXECUTION_TIMER_VERSION: '1.4'
-  EXECUTION_GUIDE_VERSION: '0.7'
-  EXECUTION_ENGINE_VERSION: '2.1'
-  ADAPTIVE_EXECUTION_VERSION: '1.0'
-  PRIORITY_DISPLAY_VERSION: '1.0'
-  DAILY_STATE_VERSION: '1.0'
-  DAILY_LOG_EDITOR_VERSION: '1.0'
-  SUPABASE_CLIENT_VERSION: '1.0'
-  CREAM_BLACK_THEME_VERSION: '1.0'
-  LUXURY_THEME_VERSION: '1.3'
-  NEXT_ACTION_VERSION: '0.4'
   TIME_AWARE_GREETING_VERSION: '1.2'
+  MASTERY_ENGINE_VERSION: '1.0'
+  MASTERY_UI_VERSION: '1.0'
 
 jobs:
   deploy:
@@ -44,9 +35,9 @@ jobs:
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme','supabase-config','supabase-client','time-aware-greeting']
+          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui']
           for name in names:
-              s = re.sub(rf'<script src="src/{name}\\.js(?:\\?v=[^"]+)?"></script>', '', s)
+              s = re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>', '', s)
           tags = [
               '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>',
               '<script src="src/application-core.js?v=0.1"></script>',
@@ -76,7 +67,9 @@ jobs:
               '<script src="src/supabase-client.js?v=1.0"></script>',
               '<script src="src/cream-theme.js?v=1.0"></script>',
               '<script src="src/luxury-theme.js?v=1.3"></script>',
-              '<script src="src/time-aware-greeting.js?v=1.2"></script>'
+              '<script src="src/time-aware-greeting.js?v=1.2"></script>',
+              '<script src="src/mastery-engine.js?v=1.0"></script>',
+              '<script src="src/mastery-ui.js?v=1.0"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
