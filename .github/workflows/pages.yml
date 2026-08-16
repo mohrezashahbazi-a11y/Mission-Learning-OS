@@ -30,21 +30,23 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
           import re
-          for name in ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','ui-cleanup','mentoring-manager']:
+          for name in ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','ui-cleanup','mentoring-manager','iran-clock','rest-day']:
               s = re.sub(rf'<script src="src/{name}\\.js(?:\\?v=[^"]+)?"></script>', '', s)
           tags = [
               '<script src="src/application-core.js?v=0.1"></script>',
               '<script src="src/application-dependencies.js?v=0.1"></script>',
               '<script src="src/application-readiness.js?v=0.2"></script>',
               '<script src="src/timeline.js?v=0.2"></script>',
-              '<script src="src/deadline-sync.js?v=0.1"></script>',
+              '<script src="src/iran-clock.js?v=0.1"></script>',
+              '<script src="src/deadline-sync.js?v=0.3"></script>',
               '<script src="src/runtime.js?v=0.9"></script>',
               '<script src="src/director-engine.js?v=0.2"></script>',
               '<script src="src/next-action.js?v=0.2"></script>',
               '<script src="src/execution-policy.js?v=0.1"></script>',
               '<script src="src/execution-history.js?v=0.1"></script>',
               '<script src="src/ui-cleanup.js?v=0.1"></script>',
-              '<script src="src/mentoring-manager.js?v=0.1"></script>'
+              '<script src="src/mentoring-manager.js?v=0.3"></script>',
+              '<script src="src/rest-day.js?v=0.1"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
