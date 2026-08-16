@@ -1,4 +1,4 @@
-// Mission Learning OS — Court Green / Cream / Black Theme v1.2
+// Mission Learning OS — Court Green / Cream / Black Theme v1.3
 // Visual-only layer. Application logic remains untouched.
 (() => {
   if (document.getElementById('luxury-cream-black-theme')) return;
@@ -20,6 +20,13 @@ body:before{display:none!important}
 .dot{box-shadow:0 0 0 4px #e7ece3}.learn,.practice,.eng,.research{background:#43583f!important}.mission-title{letter-spacing:-.015em}.mission-meta{color:#716c63!important}.status{background:#ece8df!important;color:#2b2a25!important}.status.complete{background:#dce5d8!important;color:#2d402b!important}
 .stat{background:#faf7f0!important;border:1px solid #d7d0c4!important;border-radius:11px!important}.num{letter-spacing:-.04em}.progress{background:#e1ddd4!important;height:7px;border-radius:2px}.bar{background:#667f63!important}
 .primary{background:#43583f!important;color:#f7f3eb!important;border:1px solid #334630!important;border-radius:8px!important;box-shadow:0 5px 12px rgba(53,70,49,.18)}.primary:hover{background:#344832!important}.ghost{background:#eeeae1!important;color:#171714!important;border:1px solid #d1c9bc!important;border-radius:8px!important}
+/* Runtime-injected next-action card: remove the last remaining navy accent. */
+.hero [class*="next-action"],.hero [class*="action-card"],.hero [class*="nextAction"],.hero [class*="actionCard"]{background:#243322!important;border:1px solid #5b7254!important;color:#f7f3eb!important;box-shadow:0 8px 20px rgba(28,40,25,.16)!important;border-radius:10px!important}
+.hero [class*="next-action"] .eyebrow,.hero [class*="action-card"] .eyebrow{color:#a9bb9f!important}
+.hero [class*="next-action"] .primary,.hero [class*="action-card"] .primary{background:#70896b!important;border-color:#80977b!important;color:#10140f!important;box-shadow:none!important}
+.hero [class*="next-action"] [class*="priority"],.hero [class*="action-card"] [class*="priority"]{background:#43583f!important;border-color:#70896b!important;color:#f1f4ec!important}
+/* Catch runtime cards that use inline dark/navy backgrounds. */
+.hero [style*="background:#0"],.hero [style*="background: #0"],.hero [style*="background:#1"],.hero [style*="background: #1"]{background:#243322!important;color:#f7f3eb!important;border-color:#5b7254!important}
 .timeline:before{background:#c9c1b4!important}.tl:before{background:#667f63!important;box-shadow:0 0 0 4px #e3e9df!important}
 .modal{background:rgba(20,19,16,.46)!important;backdrop-filter:blur(3px)}.modalbox{background:#fffdf8!important;border:1px solid #d1c9bc!important;border-radius:15px!important;box-shadow:0 30px 70px rgba(20,18,14,.23)!important}.detail{background:#f3efe7!important;border:1px solid #d8d0c3!important;border-radius:10px!important}.close{background:#e9eee5!important;color:#263023!important;border:1px solid #cfd9ca!important}.toast{background:#171714!important;color:#f7f3eb!important;border-left:3px solid #70896b}.bottom{border-top-color:#d0c8ba!important;color:#756f65!important}
 input,textarea,select{border-color:#cfc7b9!important;background:#fffdf8!important;color:#171714!important;border-radius:8px!important}input:focus,textarea:focus,select:focus{outline:none!important;border-color:#70896b!important;box-shadow:0 0 0 2px rgba(112,137,107,.16)!important}
