@@ -1,4 +1,4 @@
-// Mission Learning OS — Next Action controller v0.1
+// Mission Learning OS — Next Action controller v0.2
 // Turns the Director's ranked mission into one explicit action. The user executes; the system decides.
 (() => {
   const q = sel => document.querySelector(sel);
@@ -24,6 +24,8 @@
     const title = text(mission.querySelector('.mission-title'));
     const meta = text(mission.querySelector('.mission-meta'));
     const score = text(mission.querySelector('.score'));
+    const id = mission.dataset.runtimeId || '';
+    const planned = Number((meta.match(/(\d+) min/) || [])[1] || 0);
     root.innerHTML = `
       <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#7c8cff">YOUR NEXT ACTION</div>
       <div style="font-size:19px;font-weight:800;margin-top:6px">${title}</div>
@@ -34,7 +36,10 @@
       </div>`;
 
     const btn = q('#startNextAction');
-    if (btn) btn.onclick = () => mission.click();
+    if (btn) btn.onclick = () => {
+      window.missionOSExecutionHistory?.start(id, planned);
+      mission.click();
+    };
   }
 
   window.missionOSNextAction = { render };
