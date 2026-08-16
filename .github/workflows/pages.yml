@@ -14,6 +14,9 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  EXECUTION_GUIDE_VERSION: '0.3'
+
 jobs:
   deploy:
     environment:
@@ -48,7 +51,7 @@ jobs:
               '<script src="src/ui-cleanup.js?v=0.1"></script>',
               '<script src="src/mentoring-manager.js?v=0.3"></script>',
               '<script src="src/rest-day.js?v=0.1"></script>',
-              '<script src="src/execution-guide.js?v=0.1"></script>'
+              '<script src="src/execution-guide.js?v=0.3"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
