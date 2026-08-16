@@ -15,7 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXECUTION_GUIDE_VERSION: '0.4'
   EXECUTION_TIMER_VERSION: '0.4'
 
 jobs:
@@ -51,8 +50,7 @@ jobs:
               '<script src="src/execution-history.js?v=0.4"></script>',
               '<script src="src/ui-cleanup.js?v=0.1"></script>',
               '<script src="src/mentoring-manager.js?v=0.3"></script>',
-              '<script src="src/rest-day.js?v=0.1"></script>',
-              '<script src="src/execution-guide.js?v=0.4"></script>'
+              '<script src="src/rest-day.js?v=0.1"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
