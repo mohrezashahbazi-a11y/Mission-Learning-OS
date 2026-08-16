@@ -21,6 +21,7 @@ env:
   EXECUTION_ENGINE_VERSION: '1.1'
   ADAPTIVE_EXECUTION_VERSION: '1.0'
   PRIORITY_DISPLAY_VERSION: '1.0'
+  DAILY_STATE_VERSION: '1.0'
   CREAM_BLACK_THEME_VERSION: '1.0'
   LUXURY_THEME_VERSION: '1.3'
   NEXT_ACTION_VERSION: '0.4'
@@ -41,7 +42,7 @@ jobs:
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','adaptive-execution','priority-display','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme']
+          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','adaptive-execution','priority-display','daily-state','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','cream-theme','luxury-theme']
           for name in names:
               s = re.sub(rf'<script src="src/{name}\\.js(?:\\?v=[^"]+)?"></script>', '', s)
           tags = [
@@ -63,6 +64,7 @@ jobs:
               '<script src="src/execution-guide-help.js?v=0.1"></script>',
               '<script src="src/adaptive-execution.js?v=1.0"></script>',
               '<script src="src/priority-display.js?v=1.0"></script>',
+              '<script src="src/daily-state.js?v=1.0"></script>',
               '<script src="src/ui-cleanup.js?v=0.1"></script>',
               '<script src="src/mentoring-manager.js?v=0.3"></script>',
               '<script src="src/rest-day.js?v=0.1"></script>',
