@@ -1,13 +1,6 @@
-// Mission Learning OS — Time-Aware Greeting v1.1
-// Updates the real dashboard greeting and keeps it synchronized with local device time.
+// Mission Learning OS — Time-Aware Greeting v1.2
+// Targets the actual Dashboard heading and re-applies after the App Shell renders.
 (() => {
-  const getGreeting = (hour) => {
-    if (hour >= 5 && hour < 12) return 'Good morning';
-    if (hour >= 12 && hour < 17) return 'Good afternoon';
-    if (hour >= 17 && hour < 22) return 'Good evening';
-    return 'Good night';
-  };
-
   const getPhrase = (hour) => {
     const sets = {
       morning: ['Good morning', 'Good morning — let’s make today count.', 'Good morning — one focused step is enough to begin.'],
@@ -21,21 +14,20 @@
   };
 
   const render = () => {
-    // The dashboard currently renders this as #dashboard .title.
-    // Prefer a dedicated marker when present, then fall back to the real title.
-    const target = document.querySelector('#dashboard .title[data-greeting]') || document.querySelector('#dashboard .top .title');
+    const target = document.querySelector('#dashboard .top .title');
     if (!target) return false;
     const hour = new Date().getHours();
-    const name = target.dataset.name || 'MohammadReza';
-    target.textContent = `${getPhrase(hour)}, ${name}.`;
+    target.textContent = `${getPhrase(hour)}, MohammadReza.`;
     target.dataset.greetingReady = 'true';
     return true;
   };
 
-  window.missionOSTimeGreeting = { render, getGreeting };
+  window.missionOSTimeGreeting = { render };
   const boot = () => {
     render();
     setInterval(render, 60000);
+    // Re-apply after runtime/controllers have rendered the dashboard.
+    [300, 1000, 2500].forEach(ms => setTimeout(render, ms));
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
