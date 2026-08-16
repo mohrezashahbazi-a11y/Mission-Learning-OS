@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXECUTION_TIMER_VERSION: '1.2'
+  EXECUTION_TIMER_VERSION: '1.3'
 
 jobs:
   deploy:
@@ -48,7 +48,7 @@ jobs:
               '<script src="src/director-engine.js?v=0.2"></script>',
               '<script src="src/next-action.js?v=0.3"></script>',
               '<script src="src/execution-policy.js?v=0.1"></script>',
-              '<script src="src/execution-history.js?v=1.2"></script>',
+              '<script src="src/execution-history.js?v=1.3"></script>',
               '<script src="src/execution-timer-bridge.js?v=1.1"></script>',
               '<script src="src/ui-cleanup.js?v=0.1"></script>',
               '<script src="src/mentoring-manager.js?v=0.3"></script>',
