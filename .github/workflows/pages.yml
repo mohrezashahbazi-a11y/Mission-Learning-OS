@@ -15,9 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXECUTION_TIMER_VERSION: '1.3'
+  EXECUTION_TIMER_VERSION: '1.4'
   EXECUTION_GUIDE_VERSION: '0.7'
-  EXECUTION_ENGINE_VERSION: '2.0'
+  EXECUTION_ENGINE_VERSION: '2.1'
   ADAPTIVE_EXECUTION_VERSION: '1.0'
   PRIORITY_DISPLAY_VERSION: '1.0'
   DAILY_STATE_VERSION: '1.0'
@@ -59,9 +59,9 @@ jobs:
               '<script src="src/director-engine.js?v=0.2"></script>',
               '<script src="src/next-action.js?v=0.4"></script>',
               '<script src="src/execution-policy.js?v=0.1"></script>',
-              '<script src="src/execution-history.js?v=1.3"></script>',
+              '<script src="src/execution-history.js?v=1.4"></script>',
               '<script src="src/execution-timer-bridge.js?v=1.1"></script>',
-              '<script src="src/execution-engine.js?v=2.0"></script>',
+              '<script src="src/execution-engine.js?v=2.1"></script>',
               '<script src="src/execution-guide.js?v=0.7"></script>',
               '<script src="src/execution-guide-help.js?v=0.1"></script>',
               '<script src="src/adaptive-execution.js?v=1.0"></script>',
