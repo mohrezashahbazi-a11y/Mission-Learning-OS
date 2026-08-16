@@ -1,70 +1,30 @@
-// Mission Learning OS — Google Drive Sync v1.0
-// Cloud data layer. Local-first, revisioned, backup-safe. Requires a Google OAuth Web Client ID.
+// Mission Learning OS — Google Drive Sync v1.1
+// Local-first cloud data, versioned backups, restore and multi-device sync.
 (() => {
-  const NS='missionOSCloud';
-  const DATA_KEY='missionOSCloudData';
-  const META_KEY='missionOSCloudMeta';
-  const FOLDER='Mission Learning OS';
-  const FILE='mission-os-data.json';
-  const BACKUP_PREFIX='mission-os-backup-';
-  const SCOPES='https://www.googleapis.com/auth/drive.file';
-  const DISCOVERY='https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+  const DATA_KEY='missionOSCloudData', META_KEY='missionOSCloudMeta', FOLDER='Mission Learning OS', FILE='mission-os-data.json', BACKUP_PREFIX='mission-os-backup-', SCOPES='https://www.googleapis.com/auth/drive.file';
   const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??d}catch{return d}};
-  const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-  const now=()=>new Date().toISOString();
+  const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v)); const now=()=>new Date().toISOString();
   const meta=()=>get(META_KEY,{revision:0,lastSync:null,lastBackup:null,cloudFileId:null,folderId:null,connected:false});
-  const setMeta=(patch)=>put(META_KEY,{...meta(),...patch});
-
-  function clientId(){return window.MISSION_GOOGLE_CLIENT_ID||localStorage.getItem('missionOSGoogleClientId')||''}
-  function configured(){return !!clientId()}
-  function localSnapshot(){
-    const data={};
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i); if(!k)continue;
-      if(k.startsWith('missionOS')||k.startsWith('missionOS')) data[k]=get(k,null);
-    }
-    const m=meta();
-    return {schemaVersion:1,revision:m.revision+1,updatedAt:now(),data};
-  }
-  function saveLocalRevision(){const snap=localSnapshot();put(DATA_KEY,snap);setMeta({revision:snap.revision});return snap}
-
-  let tokenClient=null, accessToken=null;
-  function loadGIS(){return new Promise((resolve,reject)=>{if(window.google?.accounts?.oauth2)return resolve();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>resolve();s.onerror=reject;document.head.appendChild(s)})}
-  async function connect(){
-    if(!configured()) throw new Error('Google OAuth Client ID is not configured.');
-    await loadGIS();
-    return new Promise((resolve,reject)=>{
-      tokenClient=google.accounts.oauth2.initTokenClient({client_id:clientId(),scope:SCOPES,callback:(r)=>{if(r.error)return reject(r);accessToken=r.access_token;setMeta({connected:true});resolve({ok:true})}});
-      tokenClient.requestAccessToken({prompt:'consent'});
-    });
-  }
-  function authHeaders(){if(!accessToken)throw new Error('Connect Google Drive first.');return {Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'}}
+  const setMeta=p=>put(META_KEY,{...meta(),...p});
+  const clientId=()=>window.MISSION_GOOGLE_CLIENT_ID||localStorage.getItem('missionOSGoogleClientId')||''; const configured=()=>!!clientId();
+  function localSnapshot(){const data={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||k===DATA_KEY||k===META_KEY)continue;if(k.startsWith('missionOS'))data[k]=get(k,null)}const m=meta();return{schemaVersion:1,revision:m.revision+1,updatedAt:now(),data}}
+  function saveLocalRevision(){const s=localSnapshot();put(DATA_KEY,s);setMeta({revision:s.revision});return s}
+  function applySnapshot(s){if(!s||typeof s!=='object'||!s.data)throw new Error('Invalid Mission OS backup.');Object.keys(s.data).forEach(k=>{if(k!==DATA_KEY&&k!==META_KEY)put(k,s.data[k])});put(DATA_KEY,s);setMeta({revision:Number(s.revision||0),lastSync:now(),connected:true});return s}
+  let tokenClient=null,accessToken=null;
+  function loadGIS(){return new Promise((resolve,reject)=>{if(window.google?.accounts?.oauth2)return resolve();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+  async function connect(){if(!configured())throw new Error('Google OAuth Client ID is not configured.');await loadGIS();return new Promise((resolve,reject)=>{tokenClient=google.accounts.oauth2.initTokenClient({client_id:clientId(),scope:SCOPES,callback:r=>{if(r.error)return reject(r);accessToken=r.access_token;setMeta({connected:true});resolve({ok:true})}});tokenClient.requestAccessToken({prompt:'consent'})})}
+  function authHeaders(){if(!accessToken)throw new Error('Connect Google Drive first.');return{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'}}
   async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{...authHeaders(),...(opts.headers||{})}});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);return r.status===204?null:r.json()}
   async function findFolder(){const q=`name='${FOLDER.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;const r=await api(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name)`);return r.files?.[0]||null}
   async function ensureFolder(){let f=await findFolder();if(f)return f;return api('https://www.googleapis.com/drive/v3/files',{method:'POST',body:JSON.stringify({name:FOLDER,mimeType:'application/vnd.google-apps.folder'})})}
   async function findFile(folderId){const q=`name='${FILE}' and '${folderId}' in parents and trashed=false`;const r=await api(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,modifiedTime,version)`);return r.files?.[0]||null}
-  async function uploadJson(fileId,folderId,snapshot){
-    const boundary='mission-os-boundary';
-    const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:FILE,mimeType:'application/json',parents:[folderId]})}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(snapshot)}\r\n--${boundary}--`;
-    const url=fileId?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id,name,modifiedTime,version`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime,version';
-    const headers={Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${boundary}`};
-    const r=await fetch(url,{method:fileId?'PATCH':'POST',headers,body});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);return r.json();
-  }
-  async function backup(){
-    const folder=await ensureFolder();const snapshot=saveLocalRevision();const name=`${BACKUP_PREFIX}${snapshot.updatedAt.replace(/[:.]/g,'-')}.json`;
-    const boundary='mission-os-backup-boundary';
-    const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name,mimeType:'application/json',parents:[folder.id]})}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(snapshot)}\r\n--${boundary}--`;
-    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime',{method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${boundary}`},body});
-    if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);const out=await r.json();setMeta({lastBackup:now(),folderId:folder.id});return out;
-  }
-  async function sync(){
-    const folder=await ensureFolder();const file=await findFile(folder.id);const local=saveLocalRevision();
-    if(!file){const created=await uploadJson(null,folder.id,local);setMeta({cloudFileId:created.id,folderId:folder.id,lastSync:now(),connected:true});return {direction:'upload',revision:local.revision};}
-    const r=await api(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`);const remote=await r;
-    const rr=Number(remote?.revision||0), lr=Number(local.revision||0);
-    if(rr>lr){put(DATA_KEY,remote);setMeta({cloudFileId:file.id,folderId:folder.id,lastSync:now(),connected:true,revision:rr});return {direction:'download',revision:rr,conflict:false};}
-    const uploaded=await uploadJson(file.id,folder.id,local);setMeta({cloudFileId:uploaded.id,folderId:folder.id,lastSync:now(),connected:true,revision:lr});return {direction:'upload',revision:lr,conflict:false};
-  }
-  function status(){const m=meta();return {configured,connected:!!m.connected,revision:m.revision,lastSync:m.lastSync,lastBackup:m.lastBackup,cloudFileId:m.cloudFileId}}
-  window.missionOSGoogleDrive={version:'1.0',connect,sync,backup,status,saveLocalRevision,configured};
+  async function uploadJson(fileId,folderId,snapshot){const b='mission-os-boundary';const body=`--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:FILE,mimeType:'application/json',parents:[folderId]})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(snapshot)}\r\n--${b}--`;const url=fileId?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id,name,modifiedTime,version`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime,version';const r=await fetch(url,{method:fileId?'PATCH':'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${b}`},body});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);return r.json()}
+  async function readRemote(id){return api(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)}
+  async function backup(){const folder=await ensureFolder(),snapshot=saveLocalRevision(),name=`${BACKUP_PREFIX}${snapshot.updatedAt.replace(/[:.]/g,'-')}.json`,b='mission-os-backup-boundary';const body=`--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name,mimeType:'application/json',parents:[folder.id]})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(snapshot)}\r\n--${b}--`;const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime',{method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${b}`},body});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);const out=await r.json();setMeta({lastBackup:now(),folderId:folder.id});return out}
+  async function listBackups(limit=12){const folder=await ensureFolder(),q=`'${folder.id}' in parents and name contains '${BACKUP_PREFIX}' and trashed=false`;const r=await api(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&orderBy=createdTime desc&pageSize=${limit}&fields=files(id,name,createdTime,modifiedTime,size)`);return(r.files||[]).map(f=>({id:f.id,name:f.name,createdTime:f.createdTime,modifiedTime:f.modifiedTime,size:f.size||0}))}
+  async function restoreBackup(id){const s=await readRemote(id);const a=applySnapshot(s);return{revision:a.revision,updatedAt:a.updatedAt}}
+  async function restoreLatest(){const b=await listBackups(1);if(!b[0])throw new Error('No Mission OS backup found in Google Drive.');return restoreBackup(b[0].id)}
+  async function sync(){const folder=await ensureFolder(),file=await findFile(folder.id),local=saveLocalRevision();if(!file){const c=await uploadJson(null,folder.id,local);setMeta({cloudFileId:c.id,folderId:folder.id,lastSync:now(),connected:true});return{direction:'upload',revision:local.revision,conflict:false}}const remote=await readRemote(file.id),rr=Number(remote?.revision||0),lr=Number(local.revision||0);if(rr>lr){applySnapshot(remote);setMeta({cloudFileId:file.id,folderId:folder.id,lastSync:now(),connected:true});return{direction:'download',revision:rr,conflict:false}}if(rr===lr&&JSON.stringify(remote?.data||{})!==JSON.stringify(local?.data||{}))return{direction:'conflict',revision:lr,conflict:true};const u=await uploadJson(file.id,folder.id,local);setMeta({cloudFileId:u.id,folderId:folder.id,lastSync:now(),connected:true,revision:lr});return{direction:'upload',revision:lr,conflict:false}}
+  function status(){const m=meta();return{configured,connected:!!m.connected,revision:m.revision,lastSync:m.lastSync,lastBackup:m.lastBackup,cloudFileId:m.cloudFileId}}
+  window.missionOSGoogleDrive={version:'1.1',connect,sync,backup,status,saveLocalRevision,configured,listBackups,restoreBackup,restoreLatest};
 })();
