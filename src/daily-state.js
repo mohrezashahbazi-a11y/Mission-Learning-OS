@@ -1,4 +1,4 @@
-// Mission Learning OS — Daily State & Day Boundary Engine v1.0
+// Mission Learning OS — Daily State & Day Boundary Engine v1.1
 // Tracks real execution by Iran calendar day. Does not equate mission completion with studying.
 (() => {
   const KEY='missionOSDailyState';
@@ -19,6 +19,7 @@
   const closePreviousDays=()=>{const s=get(),today=iranDate();if(!s.days)return;Object.values(s.days).forEach(d=>{if(d.date<today&&!d.endedAt){d.endedAt=new Date().toISOString();d.status=d.rest?'rest_day':d.studySeconds>0?(d.studySeconds>=d.targetMinutes*60?'completed':'studied'):'missed'}});save(s);};
   function render(){const d=current();const mins=Math.floor(d.studySeconds/60),sec=d.studySeconds%60;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('dailyStatus',d.rest?'Rest Day':d.studySeconds>=d.targetMinutes*60?'Completed':d.studySeconds>0?'Studied':'Not Started');set('dailyStudyTime',`${mins}m ${pad(sec)}s`);set('dailySessions',d.focusSessions);set('dailyMissions',d.missionsCompleted.length);set('dailyDate',d.date);const bar=document.getElementById('dailyProgress');if(bar)bar.style.width=`${Math.min(100,d.studySeconds/(d.targetMinutes*60)*100)}%`;}
   window.missionOSDaily={current,start,addStudy,session,completed,setRest,closePreviousDays,render,iranDate,iranParts};
-  const boot=()=>{closePreviousDays();render();setInterval(()=>{closePreviousDays();render()},30000)};
+  const loadDailyReport=()=>{if(document.querySelector('script[data-daily-report]'))return;const s=document.createElement('script');s.src='src/daily-log-editor.js?v=2.0';s.dataset.dailyReport='1';s.async=false;document.head.appendChild(s)};
+  const boot=()=>{closePreviousDays();render();loadDailyReport();setInterval(()=>{closePreviousDays();render()},30000)};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
