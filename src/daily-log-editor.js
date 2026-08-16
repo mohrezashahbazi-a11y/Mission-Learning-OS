@@ -1,11 +1,11 @@
-// Mission Learning OS — Daily Log Editor + Daily Report v2.3
-// Daily report derives execution truth from valid completed execution sessions using Tehran-local calendar days.
+// Mission Learning OS — Daily Log Editor + Daily Report v2.4 + Performance Dashboard
 (() => {
   const dailyApi=()=>window.missionOSDaily;
   const root=()=>document.body;
   const read=(k,fallback={})=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(fallback))}catch{return fallback}};
   const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
   const localDay=value=>{try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value))}catch{return String(value||'').slice(0,10)}};
+  const toast=t=>{const e=document.getElementById('toast');if(e){e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}};
 
   function ensure(){
     if(document.getElementById('dailyLogEditor'))return;
@@ -38,18 +38,11 @@
 
   function reportData(){
     const day=getToday()||{date:todayKey(),studySeconds:0,focusSessions:0,missionsStarted:[],missionsCompleted:[],status:'not_started',rest:false,targetMinutes:60};
-    const state=read('missionOSState');
-    const execution=Array.isArray(state.executionHistory)?state.executionHistory:[];
+    const state=read('missionOSState');const execution=Array.isArray(state.executionHistory)?state.executionHistory:[];
     const sessions=execution.filter(x=>x&&x.completedAt&&localDay(x.completedAt)===day.date&&x.id&&String(x.id).trim()&&Number(x.activeMilliseconds||0)>0);
     const historyMs=sessions.reduce((sum,x)=>sum+Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000),0);
-    const stateSeconds=Math.max(0,Number(day.studySeconds)||0);
-    const effectiveSeconds=sessions.length?historyMs:stateSeconds;
-    const activeMinutes=Math.floor(effectiveSeconds/60000);
-    const target=Number(day.targetMinutes||60);
-    const effectiveStatus=day.rest?'rest_day':effectiveSeconds>=target*60000?'completed':effectiveSeconds>0?'studied':'not_started';
-    const completed=day.missionsCompleted||[];
-    const started=day.missionsStarted||[];
-    const focusSessions=sessions.length?Math.max(Number(day.focusSessions||0),sessions.length):Number(day.focusSessions||0);
+    const stateSeconds=Math.max(0,Number(day.studySeconds)||0);const effectiveSeconds=sessions.length?historyMs:stateSeconds;const activeMinutes=Math.floor(effectiveSeconds/60000);const target=Number(day.targetMinutes||60);
+    const effectiveStatus=day.rest?'rest_day':effectiveSeconds>=target*60000?'completed':effectiveSeconds>0?'studied':'not_started';const completed=day.missionsCompleted||[];const started=day.missionsStarted||[];const focusSessions=sessions.length?Math.max(Number(day.focusSessions||0),sessions.length):Number(day.focusSessions||0);
     return {date:day.date,studyMinutes:activeMinutes,focusSessions,targetMinutes:target,status:effectiveStatus,missionsStarted:started,missionsCompleted:completed,executionSessions:sessions.map(x=>({id:String(x.id),plannedMinutes:Number(x.plannedMinutes||0),actualMinutes:Math.floor((Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000))/60000)})),energy:Number(state.energy||0),availableMinutes:Number(state.availableMinutes||0),reflection:day.report?.reflection||'',wins:day.report?.wins||'',blockers:day.report?.blockers||'',difficulty:Number(day.report?.difficulty||5),tomorrow:day.report?.tomorrow||''};
   }
 
@@ -58,35 +51,33 @@
     d.report={reflection:document.getElementById('rLearn').value.trim(),wins:document.getElementById('rWin').value.trim(),blockers:document.getElementById('rBlock').value.trim(),difficulty:Math.max(1,Math.min(10,Number(document.getElementById('rDifficulty').value)||5)),tomorrow:document.getElementById('rTomorrow').value.trim(),updatedAt:new Date().toISOString()};s.days[date]=d;save('missionOSDailyState',s);toast('Daily report saved.');
   }
 
-  function buildText(){
-    const r=reportData();
-    const names=r.missionsCompleted.length?r.missionsCompleted.join(', '):'None';
-    const started=r.missionsStarted.length?r.missionsStarted.join(', '):'None';
-    const exec=r.executionSessions.length?r.executionSessions.map(x=>`${x.id}: ${x.actualMinutes}m/${x.plannedMinutes}m`).join(', '):'None';
-    return `MISSION LEARNING OS — DAILY REPORT\nDate: ${r.date}\n\n1. EXECUTION\n• Active study time: ${r.studyMinutes} min / ${r.targetMinutes} min target\n• Focus sessions: ${r.focusSessions}\n• Status: ${r.status}\n• Energy setting: ${r.energy}/10\n• Available time setting: ${r.availableMinutes} min\n• Missions started: ${started}\n• Missions completed: ${names}\n• Timer sessions: ${exec}\n\n2. LEARNING\n${r.reflection||'Not recorded.'}\n\n3. WINS\n${r.wins||'Not recorded.'}\n\n4. BLOCKERS / FRICTION\n${r.blockers||'Not recorded.'}\n\n5. DIFFICULTY\n${r.difficulty}/10\n\n6. DIRECTOR NOTE FOR TOMORROW\n${r.tomorrow||'No specific note.'}\n\nPlease use this report to evaluate today, identify the main bottleneck, and adapt tomorrow’s mission queue. Do not redesign the curriculum unless the evidence requires it.`;
+  function buildText(){const r=reportData();const names=r.missionsCompleted.length?r.missionsCompleted.join(', '):'None';const started=r.missionsStarted.length?r.missionsStarted.join(', '):'None';const exec=r.executionSessions.length?r.executionSessions.map(x=>`${x.id}: ${x.actualMinutes}m/${x.plannedMinutes}m`).join(', '):'None';return `MISSION LEARNING OS — DAILY REPORT\nDate: ${r.date}\n\n1. EXECUTION\n• Active study time: ${r.studyMinutes} min / ${r.targetMinutes} min target\n• Focus sessions: ${r.focusSessions}\n• Status: ${r.status}\n• Energy setting: ${r.energy}/10\n• Available time setting: ${r.availableMinutes} min\n• Missions started: ${started}\n• Missions completed: ${names}\n• Timer sessions: ${exec}\n\n2. LEARNING\n${r.reflection||'Not recorded.'}\n\n3. WINS\n${r.wins||'Not recorded.'}\n\n4. BLOCKERS / FRICTION\n${r.blockers||'Not recorded.'}\n\n5. DIFFICULTY\n${r.difficulty}/10\n\n6. DIRECTOR NOTE FOR TOMORROW\n${r.tomorrow||'No specific note.'}\n\nPlease use this report to evaluate today, identify the main bottleneck, and adapt tomorrow’s mission queue. Do not redesign the curriculum unless the evidence requires it.`;}
+
+  function renderReport(){ensureReport();const r=reportData();document.getElementById('reportStats').innerHTML=`<div class="stat"><div class="num">${r.studyMinutes}m</div><div class="label">Active study</div></div><div class="stat"><div class="num">${r.focusSessions}</div><div class="label">Focus sessions</div></div><div class="stat"><div class="num">${r.missionsCompleted.length}</div><div class="label">Missions completed</div></div>`;document.getElementById('rLearn').value=r.reflection;document.getElementById('rWin').value=r.wins;document.getElementById('rBlock').value=r.blockers;document.getElementById('rDifficulty').value=r.difficulty;document.getElementById('rTomorrow').value=r.tomorrow;document.getElementById('reportOutput').value=buildText();document.getElementById('dailyReportModal').classList.add('open');}
+  async function copyReport(){const out=document.getElementById('reportOutput');if(!out)return;if(!out.value)saveReport();out.value=buildText();try{await navigator.clipboard.writeText(out.value);toast('Report copied to clipboard.')}catch{out.select();document.execCommand('copy');toast('Report copied.')}}
+
+  function validSessions(){const state=read('missionOSState');const execution=Array.isArray(state.executionHistory)?state.executionHistory:[];return execution.filter(x=>x&&x.completedAt&&x.id&&String(x.id).trim()&&Number(x.activeMilliseconds||0)>0);}
+  function performanceData(days=7){
+    const today=todayKey();const arr=[];const base=new Date(`${today}T12:00:00`);const all=validSessions();
+    for(let i=days-1;i>=0;i--){const d=new Date(base);d.setDate(d.getDate()-i);const key=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);const ms=all.filter(x=>localDay(x.completedAt)===key).reduce((s,x)=>s+Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000),0);const manual=read('missionOSDailyState').days?.[key]?.studySeconds||0;arr.push({date:key,minutes:Math.floor((ms||manual)/60000)});}return arr;
+  }
+  function performanceTotal(){const all=validSessions();return Math.floor(all.reduce((s,x)=>s+Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000),0)/60000)}
+
+  function ensurePerformance(){
+    if(document.getElementById('performance'))return;
+    const nav=document.querySelector('.nav');if(nav&&!document.getElementById('performanceNav')){const b=document.createElement('button');b.id='performanceNav';b.innerHTML='◒ <span>Performance</span>';b.dataset.page='performance';b.onclick=e=>{e.preventDefault();showPerformance();};nav.appendChild(b);}
+    const main=document.querySelector('.main');if(!main)return;
+    const sec=document.createElement('section');sec.id='performance';sec.className='section';sec.innerHTML=`<div class="top"><div><div class="eyebrow">Performance Analytics</div><div class="title">Study Performance</div><div class="subtitle">See how your actual study time compares with your daily target.</div></div><div class="date" id="perfRange">Last 7 days</div></div><div class="toolbar"><button class="primary" data-range="7">7 Days</button><button class="ghost" data-range="30">30 Days</button><button class="ghost" data-range="all">All Time</button></div><div class="grid"><div class="panel"><h2>Today’s Target</h2><div id="perfPie" style="width:210px;height:210px;border-radius:50%;margin:25px auto;display:grid;place-items:center;background:conic-gradient(var(--green) 0deg,var(--green) 0deg,var(--line) 0deg);position:relative"><div style="width:138px;height:138px;border-radius:50%;background:var(--panel);display:grid;place-items:center;text-align:center"><div><div id="perfPieNum" style="font-size:28px;font-weight:800">0%</div><div class="label">of target</div></div></div></div><div class="statgrid"><div class="stat"><div class="num" id="perfToday">0m</div><div class="label">Studied</div></div><div class="stat"><div class="num" id="perfRemain">0m</div><div class="label">Remaining</div></div><div class="stat"><div class="num" id="perfTarget">60m</div><div class="label">Target</div></div></div></div><div class="panel"><h2>Study Time</h2><div id="perfBars" style="display:flex;align-items:flex-end;gap:8px;height:260px;padding:15px 5px 0"></div><div id="perfBarLabels" style="display:flex;gap:8px;padding:7px 5px 0;color:var(--muted);font-size:10px"></div></div></div><div class="panel" style="margin-top:18px"><h2>Performance Summary</h2><div class="statgrid"><div class="stat"><div class="num" id="perfTotal">0m</div><div class="label">Total study time</div></div><div class="stat"><div class="num" id="perfAvg">0m</div><div class="label">Daily average</div></div><div class="stat"><div class="num" id="perfBest">0m</div><div class="label">Best day</div></div></div></div>`;main.appendChild(sec);
+    sec.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{sec.querySelectorAll('[data-range]').forEach(x=>x.className='ghost');b.className='primary';renderPerformance(b.dataset.range);});
+  }
+  function showPerformance(){ensurePerformance();document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('performance').classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));document.getElementById('performanceNav').classList.add('active');renderPerformance('7');}
+  function renderPerformance(range='7'){
+    const sec=document.getElementById('performance');if(!sec)return;const target=Number(read('missionOSDailyState').days?.[todayKey()]?.targetMinutes||60);const today=performanceData(1)[0]?.minutes||0;const pct=Math.min(100,Math.round(today/target*100));const pie=document.getElementById('perfPie');pie.style.background=`conic-gradient(var(--green) ${pct*3.6}deg,var(--line) ${pct*3.6}deg 360deg)`;document.getElementById('perfPieNum').textContent=`${pct}%`;document.getElementById('perfToday').textContent=`${today}m`;document.getElementById('perfRemain').textContent=`${Math.max(0,target-today)}m`;document.getElementById('perfTarget').textContent=`${target}m`;
+    const n=range==='all'?Math.min(30,Math.max(7,performanceData(30).length)):Number(range);const data=performanceData(n);const max=Math.max(target,...data.map(x=>x.minutes),1);document.getElementById('perfBars').innerHTML=data.map(x=>{const h=Math.max(3,Math.round(x.minutes/max*220));const hit=x.minutes>=target;return `<div title="${x.date}: ${x.minutes} min" style="flex:1;min-width:8px;height:${h}px;border-radius:6px 6px 2px 2px;background:${hit?'var(--green)':'var(--accent)'}"></div>`}).join('');document.getElementById('perfBarLabels').innerHTML=data.map(x=>`<div style="flex:1;text-align:center;overflow:hidden">${x.date.slice(5)}</div>`).join('');const total=range==='all'?performanceTotal():data.reduce((s,x)=>s+x.minutes,0);document.getElementById('perfTotal').textContent=`${total}m`;document.getElementById('perfAvg').textContent=`${Math.round(total/data.length)}m`;document.getElementById('perfBest').textContent=`${Math.max(...data.map(x=>x.minutes),0)}m`;document.getElementById('perfRange').textContent=range==='all'?'All time':`Last ${n} days`;
   }
 
-  function renderReport(){
-    ensureReport();const r=reportData();
-    document.getElementById('reportStats').innerHTML=`<div class="stat"><div class="num">${r.studyMinutes}m</div><div class="label">Active study</div></div><div class="stat"><div class="num">${r.focusSessions}</div><div class="label">Focus sessions</div></div><div class="stat"><div class="num">${r.missionsCompleted.length}</div><div class="label">Missions completed</div></div>`;
-    document.getElementById('rLearn').value=r.reflection;document.getElementById('rWin').value=r.wins;document.getElementById('rBlock').value=r.blockers;document.getElementById('rDifficulty').value=r.difficulty;document.getElementById('rTomorrow').value=r.tomorrow;document.getElementById('reportOutput').value=buildText();
-    document.getElementById('dailyReportModal').classList.add('open');
-  }
-
-  async function copyReport(){
-    const out=document.getElementById('reportOutput');if(!out)return;
-    if(!out.value)saveReport();out.value=buildText();
-    try{await navigator.clipboard.writeText(out.value);toast('Report copied to clipboard.');}catch{out.select();document.execCommand('copy');toast('Report copied.');}
-  }
-
-  function addButtons(){
-    const toolbar=document.querySelector('#missions .toolbar');if(!toolbar)return;
-    if(!document.getElementById('manualDailyLog')){const b=document.createElement('button');b.id='manualDailyLog';b.className='ghost';b.textContent='Edit study history';b.onclick=()=>open('');toolbar.appendChild(b)}
-    const report=document.getElementById('report');if(report&&!report.dataset.bound){report.dataset.bound='1';report.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();renderReport();};}
-  }
-
-  function toast(t){const e=document.getElementById('toast');if(e){e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}}
-  window.missionOSDailyLog={open,ensure,report:renderReport,buildReport:buildText};
-  const boot=()=>{addButtons();setTimeout(addButtons,300);setTimeout(addButtons,1000)};
+  function addButtons(){const toolbar=document.querySelector('#missions .toolbar');if(toolbar&&!document.getElementById('manualDailyLog')){const b=document.createElement('button');b.id='manualDailyLog';b.className='ghost';b.textContent='Edit study history';b.onclick=()=>open('');toolbar.appendChild(b)}const report=document.getElementById('report');if(report&&!report.dataset.bound){report.dataset.bound='1';report.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();renderReport();};}}
+  function boot(){addButtons();setTimeout(addButtons,300);setTimeout(addButtons,1000);ensurePerformance();}
+  window.missionOSDailyLog={open,ensure,report:renderReport,buildReport:buildText,performance:showPerformance};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
