@@ -39,7 +39,7 @@ jobs:
               '<script src="src/timeline.js?v=0.2"></script>',
               '<script src="src/deadline-sync.js?v=0.1"></script>',
               '<script src="src/runtime.js?v=0.8"></script>',
-              '<script src="src/director-engine.js?v=0.1"></script>'
+              '<script src="src/director-engine.js?v=0.2"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
