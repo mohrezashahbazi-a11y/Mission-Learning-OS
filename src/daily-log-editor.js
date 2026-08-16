@@ -1,5 +1,5 @@
-// Mission Learning OS — Daily Log Editor + Daily Report v2.0
-// Historical correction plus a structured handoff report for the Personal Learning Director.
+// Mission Learning OS — Daily Log Editor + Daily Report v2.1
+// Daily report derives execution truth from completed execution sessions, then falls back to Daily State.
 (() => {
   const dailyApi=()=>window.missionOSDaily;
   const root=()=>document.body;
@@ -37,14 +37,20 @@
   }
 
   function reportData(){
-    const day=getToday()||{date:todayKey(),studySeconds:0,focusSessions:0,missionsStarted:[],missionsCompleted:[],status:'not_started',targetMinutes:60};
+    const day=getToday()||{date:todayKey(),studySeconds:0,focusSessions:0,missionsStarted:[],missionsCompleted:[],status:'not_started',rest:false,targetMinutes:60};
     const state=read('missionOSState');
     const execution=Array.isArray(state.executionHistory)?state.executionHistory:[];
     const sessions=execution.filter(x=>String(x.completedAt||'').slice(0,10)===day.date);
-    const activeMinutes=Math.round((day.studySeconds||0)/60);
+    const historyMs=sessions.reduce((sum,x)=>sum+Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000),0);
+    const stateSeconds=Math.max(0,Number(day.studySeconds)||0);
+    // Execution History is the source of truth for timer-recorded study. Daily State is used only when no sessions exist.
+    const effectiveSeconds=sessions.length?historyMs:stateSeconds;
+    const activeMinutes=Math.floor(effectiveSeconds/60000);
+    const effectiveStatus=day.rest?'rest_day':effectiveSeconds>=Number(day.targetMinutes||60)*60000?'completed':effectiveSeconds>0?'studied':'not_started';
     const completed=day.missionsCompleted||[];
     const started=day.missionsStarted||[];
-    return {date:day.date,studyMinutes:activeMinutes,focusSessions:day.focusSessions||0,targetMinutes:day.targetMinutes||60,status:day.rest?'rest_day':day.status||'not_started',missionsStarted:started,missionsCompleted:completed,executionSessions:sessions.map(x=>({id:x.id,plannedMinutes:x.plannedMinutes,actualMinutes:x.actualMinutes})),energy:Number(state.energy||0),availableMinutes:Number(state.availableMinutes||0),reflection:day.report?.reflection||'',wins:day.report?.wins||'',blockers:day.report?.blockers||'',difficulty:Number(day.report?.difficulty||5),tomorrow:day.report?.tomorrow||''};
+    const focusSessions=sessions.length||Number(day.focusSessions||0);
+    return {date:day.date,studyMinutes:activeMinutes,focusSessions,targetMinutes:day.targetMinutes||60,status:effectiveStatus,missionsStarted:started,missionsCompleted:completed,executionSessions:sessions.map(x=>({id:x.id,plannedMinutes:x.plannedMinutes,actualMinutes:Math.round((Math.max(0,Number(x.activeMilliseconds)||Number(x.actualMinutes||0)*60000))/60000)})),energy:Number(state.energy||0),availableMinutes:Number(state.availableMinutes||0),reflection:day.report?.reflection||'',wins:day.report?.wins||'',blockers:day.report?.blockers||'',difficulty:Number(day.report?.difficulty||5),tomorrow:day.report?.tomorrow||''};
   }
 
   function saveReport(){
