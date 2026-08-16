@@ -1,0 +1,31 @@
+name: Wire Adaptive Preview
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  wire:
+    if: ${{ !contains(github.event.head_commit.message, '[adaptive-wire]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add adaptive scripts to app shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<script src="src/adaptive-engine.js"></script>'
+          if marker not in s:
+              inject='\n<script src="src/adaptive-engine.js"></script>\n<script src="src/adaptive-preview.js"></script>\n<script src="src/adaptive-preview-ui.js"></script>\n'
+              s=s.replace('</body>', inject+'</body>')
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit wiring
+        run: |
+          git config user.name 'Mission OS Bot'
+          git config user.email 'actions@github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'chore: wire adaptive preview [adaptive-wire]'
+          git push
