@@ -1,10 +1,10 @@
-// Mission Learning OS — Adaptive Mission Engine v1.0
+// Mission Learning OS — Adaptive Mission Engine v1.1
 // Pure decision engine. It does not mutate missions, timers, curriculum, or UI.
-// It reads recent evidence and returns a bounded recommendation for the next queue.
+// It reads recent evidence, recurring blockers, and unfinished missions and returns a bounded recommendation.
 (() => {
   const KEY = 'missionOSAdaptiveDecision';
-  const clamp = (n,min,max) => Math.max(min,Math.min(max,n));
   const num = (v,d=0) => Number.isFinite(Number(v)) ? Number(v) : d;
+  const text = v => String(v||'').trim();
 
   function classifyCompletion(completed, started){
     if(started<=0) return 'no_data';
@@ -13,6 +13,27 @@
     if(r>=0.7) return 'healthy';
     if(r>=0.45) return 'strained';
     return 'weak';
+  }
+
+  function blockerCounts(days){
+    const counts={};
+    days.forEach(d=>{
+      const raw=[d.blockers,d.friction,d.report?.blockers].filter(Boolean).join(' ');
+      if(!raw)return;
+      raw.split(/[\n,;|]+/).map(text).filter(Boolean).forEach(x=>{
+        const key=x.toLowerCase();counts[key]=(counts[key]||0)+1;
+      });
+    });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([label,count])=>({label,count}));
+  }
+
+  function unfinishedIds(days){
+    const started=new Set();const completed=new Set();
+    days.forEach(d=>{
+      (d.missionsStarted||[]).forEach(x=>started.add(String(x)));
+      (d.missionsCompleted||[]).forEach(x=>completed.add(String(x)));
+    });
+    return [...started].filter(x=>!completed.has(x));
   }
 
   function build(evidence={}){
@@ -28,39 +49,47 @@
     const completionRate=started?completed/started:0;
     const timeRate=study/target;
     const completionClass=classifyCompletion(completed,started);
+    const blockers=blockerCounts(days);
+    const unfinished=unfinishedIds(days);
+    const streak=days.reduce((n,d)=>num(d.studyMinutes)>0?n+1:0,0);
 
-    // Bounded adaptation: change workload by at most one step per decision.
     let workload='maintain';
     let intensity='maintain';
-    let reason='Insufficient evidence; maintain the current queue.';
+    let reason='Recent evidence does not justify a structural change.';
+    let actions=[];
 
     if(days.length===0){
       reason='No recent evidence; maintain the current queue.';
-    }else if(completionRate>=0.9 && timeRate>=0.9 && (avgEnergy===0 || avgEnergy>=6) && (avgDifficulty===0 || avgDifficulty<=7)){
+      actions.push('keep_current_queue');
+    } else if(completionRate>=0.9 && timeRate>=0.9 && (avgEnergy===0 || avgEnergy>=6) && (avgDifficulty===0 || avgDifficulty<=7)){
       workload='increase_slightly';
-      intensity='maintain';
       reason='Strong completion and time consistency with adequate energy.';
-    }else if(completionRate<0.7 || timeRate<0.6 || (avgEnergy>0 && avgEnergy<=4)){
+      actions.push('add_one_small_next_step');
+    } else if(completionRate<0.7 || timeRate<0.6 || (avgEnergy>0 && avgEnergy<=4)){
       workload='reduce_slightly';
       intensity='protect_focus';
       reason='Recent execution shows strain, low time attainment, or low energy.';
-    }else if(avgDifficulty>=8){
-      workload='maintain';
+      actions.push('shorten_or_split_next_mission');
+    } else if(avgDifficulty>=8){
       intensity='add_review';
-      reason='Difficulty is high; preserve progress and add review/support rather than increasing workload.';
-    }else{
-      workload='maintain';
-      intensity='maintain';
-      reason='Performance is mixed but does not justify a structural change.';
+      reason='Difficulty is high; preserve progress and add review/support.';
+      actions.push('insert_review_before_new_content');
+    } else {
+      actions.push('keep_current_queue');
     }
 
+    if(unfinished.length){actions.push('surface_unfinished_missions_first');}
+    if(blockers[0] && blockers[0].count>=2){actions.push('address_recurring_blocker');}
+    if(streak>=3){actions.push('protect_consistency');}
+
     const decision={
-      version:'1.0',
+      version:'1.1',
       generatedAt:new Date().toISOString(),
       windowDays:days.length,
-      metrics:{studyMinutes:study,targetMinutes:target,timeRate,started,completed,completionRate,completionClass,avgEnergy,avgDifficulty},
-      recommendation:{workload,intensity,reason,maxQueueAdjustment:1},
-      guardrails:{curriculumMutation:false,maxWorkloadStep:1,doNotRedesignCurriculum:true}
+      metrics:{studyMinutes:study,targetMinutes:target,timeRate,started,completed,completionRate,completionClass,avgEnergy,avgDifficulty,streak},
+      patterns:{topBlockers:blockers.slice(0,5),unfinishedMissions:unfinished},
+      recommendation:{workload,intensity,reason,actions,maxQueueAdjustment:1},
+      guardrails:{curriculumMutation:false,maxWorkloadStep:1,doNotRedesignCurriculum:true,doNotDeleteHistory:true}
     };
     try{localStorage.setItem(KEY,JSON.stringify(decision));}catch{}
     return decision;
