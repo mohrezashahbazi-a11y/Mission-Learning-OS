@@ -1,4 +1,4 @@
-// Mission Learning OS — mentoring session manager v0.1
+// Mission Learning OS — mentoring session manager v0.2
 // User-controlled dates for mentoring sessions. Persists locally in the browser.
 (() => {
   const KEY = 'missionOS.mentoringSessions.v1';
@@ -44,7 +44,7 @@
     rows.forEach((r, i) => {
       const div = document.createElement('div');
       div.className = 'deadline';
-      div.innerHTML = `<div><div class="dlabel">Session ${r.number}${r.title ? ' — ' + r.title.replace(/^Third mentoring session$/,'') : ''}</div><div class="dsub">${fmt(r.date)}${r.notes ? ' · ' + r.notes : ''}</div></div><div style="display:flex;align-items:center;gap:10px"><div class="when">${daysUntil(r.date)} days</div><button class="ghost mentorDelete" data-i="${i}" style="padding:5px 8px">×</button></div>`;
+      div.innerHTML = `<div><div class="dlabel">Session ${r.number}${r.title && r.title !== `Mentoring session ${r.number}` ? ' — ' + r.title.replace(/^Third mentoring session$/,'') : ''}</div><div class="dsub">${fmt(r.date)}${r.notes ? ' · ' + r.notes : ''}</div></div><div style="display:flex;align-items:center;gap:10px"><div class="when">${daysUntil(r.date)} days</div><button class="ghost mentorDelete" data-i="${i}" style="padding:5px 8px">×</button></div>`;
       list.appendChild(div);
     });
 
@@ -52,7 +52,8 @@
       const input = document.getElementById('mentorDate');
       if (!input.value) return;
       const current = load();
-      current.push({ number: nextNumber(current), date: input.value, title: `Mentoring session ${nextNumber(current)}`, notes: '' });
+      const n = nextNumber(current);
+      current.push({ number: n, date: input.value, title: `Mentoring session ${n}`, notes: '' });
       save(current);
       render();
       syncStrategicDeadline();
@@ -70,7 +71,14 @@
     const rows = load().filter(x => x.date >= new Date().toISOString().slice(0,10));
     const next = rows.sort((a,b) => a.date.localeCompare(b.date))[0];
     const root = document.getElementById('deadlineList');
-    if (!root || !next) return;
+    if (!root) return;
+    root.querySelectorAll('.deadline').forEach(el => {
+      if (!el.classList.contains('mentoring-deadline') && /mentoring session|third mentoring session/i.test(el.querySelector('.dlabel')?.textContent || '')) el.remove();
+    });
+    if (!next) {
+      root.querySelector('.mentoring-deadline')?.remove();
+      return;
+    }
     const existing = root.querySelector('.mentoring-deadline');
     const html = `<div class="deadline mentoring-deadline"><div><div class="dlabel">Mentoring session ${next.number}</div><div class="dsub">Execution rhythm + blockers · ${fmt(next.date)}</div></div><div class="when">${daysUntil(next.date)} days</div></div>`;
     if (existing) existing.outerHTML = html;
