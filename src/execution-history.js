@@ -1,30 +1,18 @@
-// Mission Learning OS — Execution History v0.4.1
-// Stable execution timer: no DOM MutationObserver to avoid render loops.
+// Mission Learning OS — Execution History SAFE MODE
+// Intentionally disabled while the execution timer is being rebuilt.
+// This file must remain harmless even if an older cached HTML page loads it.
 (() => {
-  const KEY='missionOSState', ACTIVE='missionOSActiveSession';
-  const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
-  const write=s=>localStorage.setItem(KEY,JSON.stringify(s));
-  const load=()=>{try{return JSON.parse(localStorage.getItem(ACTIVE)||'null')}catch{return null}};
-  const save=x=>localStorage.setItem(ACTIVE,JSON.stringify(x));
-  const clear=()=>localStorage.removeItem(ACTIVE);
-  const titles={
-    'The Beginning of Geotechnical Engineering':'GE-01','Soil Mechanics — Three-Phase System':'GE-02','Soil Mechanics — Unit Weights':'GE-03',
-    'Present Simple':'EN-GRAMMAR-01','Present Continuous':'EN-GRAMMAR-02','Geotechnical Vocabulary Set 01':'TECH-01','Geotechnical Vocabulary Set 02':'TECH-02',
-    'System → Elements → Interconnections → Purpose':'SYS-01','Systems Thinking × Geotechnics':'SYS-02','Python — Session 1':'PY-01','Python — Session 2':'PY-02'
+  try {
+    localStorage.removeItem('missionOSActiveSession');
+  } catch (_) {}
+  window.missionOSExecutionHistory = {
+    version: 'safe-mode',
+    disabled: true,
+    start: () => null,
+    pause: () => null,
+    resume: () => null,
+    finish: () => null,
+    render: () => {},
+    active: () => null
   };
-  const planned={ 'GE-01':60,'GE-02':60,'GE-03':60,'EN-GRAMMAR-01':50,'EN-GRAMMAR-02':50,'TECH-01':45,'TECH-02':45,'SYS-01':60,'SYS-02':60,'PY-01':60,'PY-02':60 };
-  const idFromModal=()=>titles[document.getElementById('mtitle')?.textContent?.trim()||'']||null;
-  const title=id=>Object.keys(titles).find(k=>titles[k]===id)||id;
-  function activeMs(s){if(!s)return 0;return Number(s.accumulatedMs||0)+(s.status==='running'&&s.activeStartedAt?Date.now()-new Date(s.activeStartedAt).getTime():0)}
-  const fmt=ms=>{const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`};
-  function start(id,mins){if(!id)return null;let s=load();if(s?.id===id)return s;if(s){if(!confirm('A mission is already running. Finish it before starting another mission.'))return null;return s}s={id,plannedMinutes:Number(mins||planned[id]||60),startedAt:new Date().toISOString(),activeStartedAt:new Date().toISOString(),accumulatedMs:0,status:'running'};save(s);render();return s}
-  function pause(){const s=load();if(!s||s.status!=='running')return;s.accumulatedMs+=Date.now()-new Date(s.activeStartedAt).getTime();s.status='paused';s.pausedAt=new Date().toISOString();save(s);render()}
-  function resume(){const s=load();if(!s||s.status!=='paused')return;s.activeStartedAt=new Date().toISOString();s.status='running';delete s.pausedAt;save(s);render()}
-  function finish(){const s=load();if(!s)return null;if(!confirm('Finish this Mission and record the active study time?'))return null;const ms=activeMs(s),mins=Math.max(0,Math.round(ms/60000));const state=read();state.executionHistory=Array.isArray(state.executionHistory)?state.executionHistory:[];state.executionHistory.push({id:s.id,startedAt:s.startedAt,completedAt:new Date().toISOString(),plannedMinutes:s.plannedMinutes,actualMinutes:mins,activeMilliseconds:ms});write(state);clear();render();renderHistory();return mins}
-  function ensurePanel(){const modal=document.getElementById('modal'),detail=modal?.querySelector('.mission-detail');if(!modal||!detail)return null;let p=document.getElementById('executionTimerPanel');if(!p){p=document.createElement('div');p.id='executionTimerPanel';p.className='detail';detail.insertBefore(p,detail.firstChild)}return p}
-  function render(){const modal=document.getElementById('modal');if(!modal?.classList.contains('open')){document.getElementById('executionTimerPanel')?.remove();return}const p=ensurePanel();if(!p)return;const id=idFromModal(),s=load();const running=s&&s.id===id;const other=s&&s.id!==id;if(!s){p.innerHTML='<b>Execution</b><div class="dsub">Ready to begin. The timer records active study time only.</div><div class="actions" style="margin-top:10px"><button class="primary" id="execStart">Start Mission</button></div>';document.getElementById('execStart').onclick=()=>start(id,planned[id]);return}if(other){p.innerHTML=`<b>Another Mission is running</b><div class="dsub">${title(s.id)} · ${fmt(activeMs(s))} active</div><div class="actions" style="margin-top:10px"><button class="ghost" id="execResumeOther">Go to running Mission</button></div>`;document.getElementById('execResumeOther').onclick=()=>{document.querySelector(`[data-runtime-id="${s.id}"]`)?.click()};return}const paused=s.status==='paused';p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><b>Execution Timer</b><div class="dsub">Step progress is separate; this measures active study time.</div></div><span class="chip">${paused?'Paused':'Running'}</span></div><div id="execClock" style="font-size:38px;font-weight:800;letter-spacing:-.03em;margin:12px 0">${fmt(activeMs(s))}</div><div class="chips"><span class="chip">Planned ${s.plannedMinutes} min</span><span class="chip">Active only</span></div><div class="actions" style="margin-top:12px"><button class="${paused?'primary':'ghost'}" id="execPauseResume">${paused?'Resume':'Pause'}</button><button class="ghost" id="execFinish">Finish Mission</button></div>`;document.getElementById('execPauseResume').onclick=paused?resume:pause;document.getElementById('execFinish').onclick=finish}
-  function renderHistory(){const review=document.getElementById('review');if(!review)return;let p=document.getElementById('executionHistoryPanel');if(!p){p=document.createElement('div');p.id='executionHistoryPanel';p.className='panel';p.style.marginTop='18px';const g=review.querySelector('.grid');if(g)g.insertAdjacentElement('afterend',p)}const h=Array.isArray(read().executionHistory)?read().executionHistory:[];if(!h.length){p.innerHTML='<h2>Execution History</h2><div class="empty">No completed execution sessions recorded yet.</div>';return}const a=h.reduce((n,x)=>n+Number(x.actualMinutes||0),0),pl=h.reduce((n,x)=>n+Number(x.plannedMinutes||0),0),r=pl?Math.round(a/pl*100):0;p.innerHTML=`<h2>Execution History</h2><div class="statgrid" style="margin-bottom:14px"><div class="stat"><div class="num">${h.length}</div><div class="label">Sessions</div></div><div class="stat"><div class="num">${a}m</div><div class="label">Active time</div></div><div class="stat"><div class="num">${r}%</div><div class="label">Active / planned</div></div></div>`+h.slice(-8).reverse().map(x=>`<div class="deadline"><div><div class="dlabel">${title(x.id)}</div><div class="dsub">Planned ${x.plannedMinutes} min · Active ${x.actualMinutes} min</div></div><div class="when">${new Date(x.completedAt).toLocaleDateString('en-GB')}</div></div>`).join('')}
-  window.missionOSExecutionHistory={start,pause,resume,finish,render,active:load};
-  function boot(){render();renderHistory();setInterval(()=>{render();renderHistory()},1000)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
