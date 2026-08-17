@@ -1,23 +1,26 @@
-// Mission Learning OS — UI cleanup v0.1
-// Never expose internal ranking sentinels for blocked missions.
+// Mission Learning OS — Reference UI v1.0
+// Visual layer only. Mission/Director logic remains untouched.
 (() => {
-  function cleanBlockedScores() {
-    document.querySelectorAll('.mission[data-runtime-id]').forEach(card => {
-      const meta = card.querySelector('.mission-meta');
-      const score = card.querySelector('.score');
-      if (!meta || !score) return;
-      if (meta.textContent.includes('Blocked by:')) {
-        score.textContent = 'Blocked';
-      }
-    });
+  const STYLE_ID='mission-reference-ui-v1';
+  function installUI(){
+    if(document.getElementById(STYLE_ID))return;
+    const s=document.createElement('style');s.id=STYLE_ID;s.textContent=`
+:root{--bg:#f5f0e7;--surface:#fbf9f4;--ink:#171715;--muted:#6f6d68;--green:#1f4f3b;--line:#d8d1c5;--shadow:0 16px 38px rgba(48,43,35,.08)}
+html,body{background:var(--bg)!important;color:var(--ink)!important}body{font-family:"Inter","SF Pro Display","Segoe UI",Roboto,Arial,sans-serif!important;font-size:15px!important;background:linear-gradient(180deg,#31463e 0,#667069 3%,#c3c0b7 7%,#e7e3da 11%,var(--bg) 16%,var(--bg) 100%)!important}body:before{content:"";position:fixed;z-index:-1;left:0;right:0;top:0;height:118px;pointer-events:none;background:linear-gradient(180deg,rgba(25,42,36,.98),rgba(73,83,76,.72) 25%,rgba(190,188,177,.32) 62%,rgba(245,240,231,0) 100%)}
+.side{width:110px!important;background:rgba(248,245,238,.9)!important;border-right:1px solid rgba(105,98,87,.2)!important;padding:28px 18px 22px!important;box-shadow:10px 0 30px rgba(50,45,38,.035)!important;backdrop-filter:blur(8px)}
+.brand{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;padding:0 0 24px!important;font-size:0!important}.brand span,.bottom{display:none!important}.brand .logo{width:76px!important;height:76px!important;border-radius:50%!important;background:#fbfaf5!important;border:1.5px solid #174d3b!important;box-shadow:0 5px 16px rgba(35,62,49,.12)!important;overflow:hidden!important;padding:4px!important}.brand .logo img{width:100%;height:100%;object-fit:contain;display:block}
+.nav{display:grid!important;gap:9px!important}.nav button{min-height:54px!important;width:100%!important;text-align:center!important;background:transparent!important;color:#4d4c48!important;padding:8px 4px!important;border-radius:16px!important;font-size:25px!important;font-weight:500!important;display:flex!important;align-items:center!important;justify-content:center!important;transition:.16s ease!important}.nav button span{display:none!important}.nav button:hover,.nav button.active{background:#e8e1d5!important;color:#1b1b19!important}
+.main{margin-left:110px!important;max-width:900px!important;padding:76px 36px 70px!important}.top{display:block!important;margin-bottom:20px!important}.eyebrow{color:var(--green)!important;font-size:12px!important;font-weight:800!important;letter-spacing:.16em!important;text-transform:uppercase!important}.title{font-size:42px!important;line-height:1.18!important;font-weight:800!important;letter-spacing:-.035em!important;margin:8px 0 9px!important;color:var(--ink)!important}.subtitle{color:var(--muted)!important;line-height:1.55!important;font-size:18px!important}.date,.pill{display:inline-flex!important;align-items:center!important;border:1px solid var(--line)!important;background:rgba(250,248,242,.72)!important;border-radius:15px!important;padding:12px 17px!important;color:#373631!important;font-size:16px!important;margin-top:16px!important}
+.grid{display:block!important}.panel{background:rgba(251,249,244,.76)!important;border:1px solid var(--line)!important;border-radius:24px!important;padding:28px!important;box-shadow:var(--shadow)!important}.hero{background:rgba(251,249,244,.68)!important;border-color:var(--line)!important;padding:34px!important}.hero h1{font-size:31px!important;line-height:1.25!important;letter-spacing:-.025em!important;margin:10px 0 15px!important}.panel h2{font-size:28px!important;line-height:1.2!important;margin:0 0 12px!important;letter-spacing:-.025em!important}.chips,.actions,.tags{gap:9px!important}.chip,.tag{font-size:13px!important;padding:8px 13px!important;border-radius:999px!important;background:#f4f0e8!important;color:#393833!important;border:1px solid var(--line)!important}
+.mission{gap:13px!important;padding:17px 18px!important;border:1px solid var(--line)!important;background:rgba(249,247,241,.72)!important;border-radius:18px!important;margin-top:11px!important}.mission-title{font-weight:750!important;font-size:16px!important;color:#1b1b19!important}.mission-meta{font-size:13px!important;color:var(--muted)!important;margin-top:5px!important}.score{font-size:12px!important;color:#8991af!important}.toolbar{display:flex!important;gap:10px!important;margin-bottom:20px!important;overflow-x:auto!important;padding-bottom:2px!important}.toolbar::-webkit-scrollbar{display:none}.primary,.ghost{padding:12px 17px!important;border-radius:14px!important;font-weight:700!important;font-size:14px!important;border:1px solid var(--line)!important;white-space:nowrap!important}.primary{background:#111210!important;color:#fff!important;border-color:#111210!important}.ghost{background:#ece7dc!important;color:#171715!important}
+.stat{padding:16px!important;border:1px solid var(--line)!important;border-radius:15px!important;background:#f8f5ee!important}.num{font-size:25px!important;font-weight:800!important}.label{color:var(--muted)!important;font-size:12px!important}.progress{height:8px!important;background:#ddd8ce!important}.bar{background:var(--green)!important}.cards{grid-template-columns:1fr!important;gap:14px!important}.domain{padding:18px!important;border:1px solid var(--line)!important;border-radius:18px!important;background:#faf8f3!important}.timeline:before{background:#c9c2b5!important}.tl:before{background:var(--green)!important;box-shadow:0 0 0 4px #e7e1d6!important}.modalbox{background:#fbf9f4!important;border-color:var(--line)!important;color:var(--ink)!important}.detail{background:#f5f1e8!important;border-color:var(--line)!important}textarea{background:#faf8f3!important;border-color:var(--line)!important;color:var(--ink)!important}.toast{background:#1d352b!important;border-color:#315d4c!important;color:#fff!important}
+@media(max-width:900px){.side{width:110px!important;padding:28px 18px 22px!important}.brand .logo{width:76px!important;height:76px!important}.main{margin-left:110px!important;padding:78px 24px 55px!important;max-width:none!important}.title{font-size:36px!important}}
+@media(max-width:560px){.side{width:86px!important;padding:24px 13px 18px!important}.brand .logo{width:62px!important;height:62px!important}.main{margin-left:86px!important;padding:72px 16px 45px!important}.title{font-size:29px!important}.subtitle{font-size:15px!important}.panel{padding:21px!important;border-radius:20px!important}.hero{padding:24px!important}.hero h1{font-size:25px!important}.panel h2{font-size:23px!important}.statgrid{grid-template-columns:1fr!important}}
+`;document.head.appendChild(s);
   }
-
-  const boot = () => {
-    cleanBlockedScores();
-    setTimeout(cleanBlockedScores, 250);
-    setInterval(cleanBlockedScores, 1000);
-  };
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  function logo(){const el=document.querySelector('.brand .logo');if(!el||el.querySelector('img'))return;el.textContent='';const i=document.createElement('img');i.src='src/mission-logo.svg';i.alt='Mission Learning OS';el.appendChild(i)}
+  function nav(){const icons=['⌂','◇','✓','▦','◷','↻','◎'];document.querySelectorAll('.nav button').forEach((b,i)=>{const sp=b.querySelector('span');if(sp)b.firstChild.textContent=(icons[i]||'•')+' '})}
+  function clean(){document.querySelectorAll('.mission[data-runtime-id]').forEach(c=>{const m=c.querySelector('.mission-meta'),sc=c.querySelector('.score');if(m&&sc&&m.textContent.includes('Blocked by:'))sc.textContent='Blocked'})}
+  const boot=()=>{installUI();logo();nav();clean();setTimeout(()=>{logo();nav();clean()},300);setTimeout(()=>{logo();nav();clean()},1000)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
