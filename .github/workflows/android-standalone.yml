@@ -1,0 +1,34 @@
+name: Build Standalone Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare bundled web app
+        run: |
+          rm -rf android/app/src/main/assets
+          mkdir -p android/app/src/main/assets
+          cp index.html android/app/src/main/assets/index.html
+          cp -R src android/app/src/main/assets/src
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mission-learning-os-standalone-apk
+          path: android/app/build/outputs/apk/release/*.apk
