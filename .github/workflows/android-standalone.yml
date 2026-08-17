@@ -32,10 +32,23 @@ jobs:
 
       - name: Build release APK
         working-directory: android
-        run: gradle assembleRelease --no-daemon
+        shell: bash
+        run: |
+          set +e
+          gradle assembleRelease --no-daemon 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          exit $status
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: mission-learning-os-standalone-apk
           path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mission-learning-os-build-log
+          path: android/build.log
