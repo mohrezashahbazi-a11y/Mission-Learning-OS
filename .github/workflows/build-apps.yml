@@ -126,7 +126,7 @@ jobs:
           unzip -l "$APK" | grep -q 'assets/src/analytics-ui.js'
           unzip -p "$APK" assets/index.html | grep -q 'src/luxury-theme.js?v=1.3'
           unzip -p "$APK" assets/index.html | grep -q 'src/execution-engine.js?v=2.1'
-          unzip -p "$APK" assets/index.html | grep -q 'src/google-drive-sync-ui.js?v=1.8'
+          unzip -p "$APK" assets/index.html | grep -q 'src/google-drive-sync-ui.js?v=1.0'
           echo "Verified: APK uses the same injected runtime as GitHub Pages."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
