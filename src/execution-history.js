@@ -28,3 +28,11 @@
   function boot(){render();renderHistory();setInterval(tick,1000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
+
+// Load the Analytics layer through an already-authoritative runtime script so the
+// Pages workflow does not need to be changed just to add analytics modules.
+(() => {
+  const load=(src,id)=>{if(document.getElementById(id)||document.querySelector(`script[src^="${src}"]`))return;const s=document.createElement('script');s.src=`${src}?v=1.0`;s.id=id;s.onload=()=>window.missionOSAnalyticsUI?.render?.();document.body.appendChild(s)};
+  const boot=()=>{load('src/analytics-engine.js','missionAnalyticsEngine');setTimeout(()=>load('src/analytics-ui.js','missionAnalyticsUI'),80)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
