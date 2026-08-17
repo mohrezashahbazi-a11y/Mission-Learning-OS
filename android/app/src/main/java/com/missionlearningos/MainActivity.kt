@@ -26,7 +26,7 @@ class MainActivity : Activity() {
         webView.settings.textZoom = 100
 
         // Android 15+ lays app content out behind system bars by default.
-        // Apply the actual system-bar insets so headers, controls and logos never collide with them.
+        // Apply the real insets so the header stays below the clock, signal and battery areas.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             webView.setOnApplyWindowInsetsListener { view, insets ->
                 val bars = insets.getInsets(WindowInsets.Type.systemBars())
@@ -43,10 +43,10 @@ class MainActivity : Activity() {
                     (function(){
                       var logo=document.querySelector('.logo');
                       if(logo){
-                        logo.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="27" height="27" aria-hidden="true"><path d="M17 78 L36 57 L52 67 L79 34" fill="none" stroke="#78A58F" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="78" r="6" fill="#78A58F"/><circle cx="36" cy="57" r="6" fill="#78A58F"/><circle cx="52" cy="67" r="6" fill="#78A58F"/><circle cx="79" cy="34" r="7" fill="#F2A65A"/><path d="M78 23v11H67" fill="none" stroke="#F2A65A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                        logo.style.background='#0B1B2B';
-                        logo.style.display='grid';
-                        logo.style.placeItems='center';
+                        logo.innerHTML='<img src="file:///android_asset/src/mission-logo.svg" alt="Mission Learning OS" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block">';
+                        logo.style.background='#F8F6F0';
+                        logo.style.display='block';
+                        logo.style.padding='0';
                         logo.style.overflow='hidden';
                       }
                     })();
