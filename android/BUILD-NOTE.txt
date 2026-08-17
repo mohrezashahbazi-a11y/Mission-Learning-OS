@@ -1,0 +1,1 @@
+Android standalone packaging branch created for local-bundled APK.
