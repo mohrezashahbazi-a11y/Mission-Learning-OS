@@ -1,0 +1,23 @@
+{
+  "name": "mission-learning-os",
+  "version": "1.0.0",
+  "description": "Mission Learning OS desktop wrapper",
+  "main": "desktop/main.cjs",
+  "author": "MohammadReza",
+  "license": "MIT",
+  "scripts": {
+    "dist:win": "electron-builder --win nsis portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.missionlearningos.app",
+    "productName": "Mission Learning OS",
+    "files": ["desktop/**/*"],
+    "win": {"target": ["nsis", "portable"], "artifactName": "Mission-Learning-OS-${version}-${arch}.${ext}"},
+    "nsis": {"oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true},
+    "portable": {"artifactName": "Mission-Learning-OS-${version}-portable-${arch}.${ext}"}
+  }
+}
