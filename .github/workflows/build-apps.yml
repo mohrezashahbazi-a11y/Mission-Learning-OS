@@ -25,7 +25,7 @@ jobs:
           if-no-files-found: error
 
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -48,18 +48,14 @@ jobs:
           set -euo pipefail
           rm -rf android/app/src/main/assets
           mkdir -p android/app/src/main/assets
-
-          # IMPORTANT: use the exact production web runtime.
-          # Do not remove, reorder, or replace scripts from index.html.
           cp index.html android/app/src/main/assets/index.html
           cp -R src android/app/src/main/assets/src
-
           test -s android/app/src/main/assets/index.html
           test -d android/app/src/main/assets/src
           test -f android/app/src/main/assets/src/application-core.js
           test -f android/app/src/main/assets/src/google-drive-sync.js
           test -f android/app/src/main/assets/src/analytics-ui.js
-          echo "Exact web runtime packaged:"
+          echo "Exact final web runtime packaged:"
           du -sh android/app/src/main/assets
       - name: Build standalone Android APK
         working-directory: android
