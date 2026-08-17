@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with:
+          node-version: 22
       - run: npm install
       - run: npx electron-builder --win nsis portable --x64 --publish never
       - uses: actions/upload-artifact@v4
@@ -28,30 +29,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK
-        run: yes | sdkmanager --licenses >/dev/null || true; sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Install Gradle
         run: |
           curl -fsSL https://services.gradle.org/distributions/gradle-9.5.1-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
           echo /opt/gradle-9.5.1/bin >> "$GITHUB_PATH"
       - name: Prepare standalone production web runtime
+        shell: bash
         run: |
+          set -euo pipefail
           rm -rf android/app/src/main/assets
           mkdir -p android/app/src/main/assets
-          rsync -a --exclude='.git' --exclude='android' --exclude='node_modules' --exclude='desktop' ./ android/app/src/main/assets/
+          cp index.html android/app/src/main/assets/index.html
+          cp -R src android/app/src/main/assets/src
+
           python - <<'PY'
           from pathlib import Path
           import re
+
           p = Path('android/app/src/main/assets/index.html')
           s = p.read_text(encoding='utf-8')
-          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','execution-guide-v2','cream-theme','luxury-theme','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync','google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start']
+
+          names = [
+              'runtime','review-runtime','application-readiness','application-core',
+              'application-dependencies','timeline','deadline-sync','director-engine',
+              'next-action','execution-policy','execution-history','execution-timer-bridge',
+              'execution-engine','execution-control-fix','adaptive-execution','priority-display',
+              'daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock',
+              'rest-day','date-display','execution-guide','execution-guide-help',
+              'execution-guide-v2','cream-theme','luxury-theme','supabase-config',
+              'supabase-client','time-aware-greeting','mastery-engine','mastery-ui',
+              'mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth',
+              'google-drive-sync','google-drive-sync-ui','cloud-foundation','analytics-engine',
+              'analytics-ui','fresh-start'
+          ]
           for name in names:
               s = re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>', '', s)
+
           tags = [
-              '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>',
               '<script src="src/fresh-start.js?v=1.0"></script>',
               '<script src="src/application-core.js?v=0.1"></script>',
               '<script src="src/application-dependencies.js?v=0.1"></script>',
@@ -94,11 +117,25 @@ jobs:
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
+
           p.write_text(s, encoding='utf-8')
           PY
+
+          test -s android/app/src/main/assets/index.html
+          test -d android/app/src/main/assets/src
+          echo "Standalone assets prepared:"
+          du -sh android/app/src/main/assets
+          find android/app/src/main/assets -maxdepth 2 -type f | head -20
       - name: Build standalone Android APK
         working-directory: android
         run: gradle :app:assembleDebug --no-daemon
+      - name: Verify APK contains web runtime
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          unzip -l "$APK" | grep -q 'assets/index.html'
+          unzip -l "$APK" | grep -q 'assets/src/'
+          echo "Verified: Android APK contains standalone web runtime."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-standalone.apk
       - uses: actions/upload-artifact@v4
