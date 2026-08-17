@@ -1,14 +1,22 @@
-// Mission Learning OS — Mastery Engine v1.0
-// Evidence-based mastery state. Test/development data is excluded unless a real Learning Cycle is active.
+// Mission Learning OS — Mastery Engine v1.1
+// Evidence-based mastery state. Study time alone never becomes mastery evidence.
 (() => {
   const KEY='missionOSMastery';
   const CYCLE='missionOSLearningCycle';
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+  const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
+  const write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
-  function cycleActive(){
-    try{const c=JSON.parse(localStorage.getItem(CYCLE)||'null');return !!(c&&c.active===true&&c.id)}catch{return false}
+  function cycle(){return read(CYCLE)||null}
+  function cycleActive(){const c=cycle();return !!(c&&c.active===true&&c.id)}
+  function startCycle(id='LC-1'){
+    const existing=cycle();
+    if(existing?.active===true&&existing.id)return existing;
+    const c={id,active:true,startedAt:new Date().toISOString(),version:'1.1'};
+    write(CYCLE,c);return c;
   }
+  function stopCycle(){const c=cycle();if(!c)return null;c.active=false;c.stoppedAt=new Date().toISOString();write(CYCLE,c);return c}
 
   function level(score){
     if(score<=0)return 'not_started';
@@ -19,7 +27,6 @@
   }
 
   function scoreEvidence(e={}){
-    // Completion alone is intentionally weak evidence.
     const deliverable=e.deliverable?25:0;
     const reassessment=e.reassessment?30:0;
     const review=e.review?15:0;
@@ -29,24 +36,28 @@
     return clamp(deliverable+reassessment+review+difficultyFactor+quality,0,100);
   }
 
-  function build(subjects=[]){
-    if(!cycleActive()) return {version:'1.0',active:false,reason:'No active Learning Cycle. Test data excluded.',subjects:{}};
-    const prior=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}})();
-    const out={...prior};
-    subjects.forEach(s=>{
-      if(!s?.id)return;
-      const prev=out[s.id]||{score:0,evidenceCount:0,history:[]};
-      const gain=scoreEvidence(s);
-      const score=clamp(Math.round(prev.score*0.7+gain*0.3),0,100);
-      out[s.id]={score,level:level(score),evidenceCount:n(prev.evidenceCount)+1,lastUpdated:new Date().toISOString(),history:[...(prev.history||[]),{at:new Date().toISOString(),gain,score}].slice(-30)};
-    });
-    localStorage.setItem(KEY,JSON.stringify(out));
-    return {version:'1.0',active:true,subjects:out};
+  function record(subjectId,e={}){
+    if(!subjectId)return null;
+    if(!cycleActive())return {active:false,reason:'No active Learning Cycle'};
+    const data=read(KEY)||{};
+    const prev=data[subjectId]||{score:0,evidenceCount:0,history:[]};
+    const gain=scoreEvidence(e);
+    const score=clamp(Math.round(prev.score*0.7+gain*0.3),0,100);
+    const at=new Date().toISOString();
+    data[subjectId]={score,level:level(score),evidenceCount:n(prev.evidenceCount)+1,lastUpdated:at,history:[...(prev.history||[]),{at,gain,score,type:e.type||'mission'}].slice(-30)};
+    write(KEY,data);
+    return data[subjectId];
   }
 
-  function get(subjectId){
-    try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');return subjectId?d[subjectId]||null:d}catch{return null}}
+  function build(subjects=[]){
+    if(!cycleActive())return {version:'1.1',active:false,reason:'No active Learning Cycle. Test data excluded.',subjects:{}};
+    const out=read(KEY)||{};
+    subjects.forEach(s=>{if(s?.id)record(s.id,s)});
+    return {version:'1.1',active:true,subjects:out};
+  }
+
+  function get(subjectId){const d=read(KEY)||{};return subjectId?d[subjectId]||null:d}
   function resetTestData(){localStorage.removeItem(KEY);return {ok:true}}
 
-  window.missionOSMastery={build,get,level,scoreEvidence,cycleActive,resetTestData};
+  window.missionOSMastery={version:'1.1',build,get,level,scoreEvidence,record,cycle,cycleActive,startCycle,stopCycle,resetTestData};
 })();
