@@ -54,7 +54,7 @@ jobs:
           import re
           p = Path('/tmp/mission-index.html')
           s = p.read_text(encoding='utf-8')
-          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','execution-guide-v2','cream-theme','luxury-theme','responsive-safe-area','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync','google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start']
+          names = ['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','execution-guide-v2','cream-theme','luxury-theme','responsive-safe-area','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync','google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start','ui-professional-polish']
           for name in names:
               s = re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>', '', s)
           tags = [
@@ -88,7 +88,7 @@ jobs:
               '<script src="src/supabase-client.js?v=1.0"></script>',
               '<script src="src/cream-theme.js?v=1.0"></script>',
               '<script src="src/luxury-theme.js?v=1.3"></script>',
-              '<script src="src/responsive-safe-area.js?v=1.0"></script>',
+              '<script src="src/responsive-safe-area.js?v=1.2"></script>',
               '<script src="src/time-aware-greeting.js?v=1.3"></script>',
               '<script src="src/mastery-engine.js?v=1.1"></script>',
               '<script src="src/mastery-ui.js?v=1.0"></script>',
@@ -98,7 +98,8 @@ jobs:
               '<script src="src/google-drive-sync-ui.js?v=1.0"></script>',
               '<script src="src/cloud-foundation.js?v=1.2"></script>',
               '<script src="src/analytics-engine.js?v=1.0"></script>',
-              '<script src="src/analytics-ui.js?v=1.2"></script>'
+              '<script src="src/analytics-ui.js?v=1.2"></script>',
+              '<script src="src/ui-professional-polish.js?v=2.0"></script>'
           ]
           for tag in tags:
               s = s.replace('</body>', tag + '</body>')
@@ -113,6 +114,7 @@ jobs:
           test -f android/app/src/main/assets/src/analytics-ui.js
           test -f android/app/src/main/assets/src/luxury-theme.js
           test -f android/app/src/main/assets/src/responsive-safe-area.js
+          test -f android/app/src/main/assets/src/ui-professional-polish.js
           test -f android/app/src/main/assets/src/execution-engine.js
           echo "Exact Pages runtime packaged for Android:"
           du -sh android/app/src/main/assets
@@ -128,11 +130,13 @@ jobs:
           unzip -l "$APK" | grep -q 'assets/src/google-drive-sync.js'
           unzip -l "$APK" | grep -q 'assets/src/analytics-ui.js'
           unzip -l "$APK" | grep -q 'assets/src/responsive-safe-area.js'
+          unzip -l "$APK" | grep -q 'assets/src/ui-professional-polish.js'
           unzip -p "$APK" assets/index.html | grep -q 'src/luxury-theme.js?v=1.3'
-          unzip -p "$APK" assets/index.html | grep -q 'src/responsive-safe-area.js?v=1.0'
+          unzip -p "$APK" assets/index.html | grep -q 'src/responsive-safe-area.js?v=1.2'
+          unzip -p "$APK" assets/index.html | grep -q 'src/ui-professional-polish.js?v=2.0'
           unzip -p "$APK" assets/index.html | grep -q 'src/execution-engine.js?v=2.2'
           unzip -p "$APK" assets/index.html | grep -q 'src/google-drive-sync-ui.js?v=1.0'
-          echo "Verified: responsive safe-area layer and execution engine v2.2 are packaged."
+          echo "Verified: professional UI polish, responsive safe-area layer, and execution engine v2.2 are packaged."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
       - uses: actions/upload-artifact@v4
