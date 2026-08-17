@@ -34,11 +34,13 @@ jobs:
           curl -fsSL https://services.gradle.org/distributions/gradle-9.5.1-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
           echo /opt/gradle-9.5.1/bin >> "$GITHUB_PATH"
-      - name: Build APK
+      - name: Build signed installable APK
         working-directory: android
-        run: gradle :app:assembleRelease --no-daemon
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os.apk
       - uses: actions/upload-artifact@v4
         with:
           name: mission-learning-os-android
-          path: android/app/build/outputs/apk/release/*.apk
+          path: mission-learning-os.apk
           if-no-files-found: error
