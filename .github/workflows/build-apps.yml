@@ -13,13 +13,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm install
-      - run: npm run dist:win
+      - run: npx electron-builder --win nsis portable --x64 --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: mission-learning-os-windows
-          path: |
-            dist/*.exe
-            dist/*.yml
+          path: dist/*.exe
           if-no-files-found: error
 
   android:
@@ -42,5 +40,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mission-learning-os-android
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
