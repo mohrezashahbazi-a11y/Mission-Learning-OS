@@ -1,0 +1,43 @@
+name: Build Mission OS Apps
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm install
+      - run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mission-learning-os-windows
+          path: |
+            dist/*.exe
+            dist/*.yml
+          if-no-files-found: error
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '9.5' }
+      - name: Build APK
+        working-directory: android
+        run: gradle :app:assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mission-learning-os-android
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
