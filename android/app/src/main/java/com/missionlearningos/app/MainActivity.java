@@ -2,14 +2,38 @@ package com.missionlearningos.app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.net.Uri;
-import androidx.browser.customtabs.CustomTabsIntent;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String URL = "https://mohrezashahbazi-a11y.github.io/Mission-Learning-OS/";
-    @Override public void onCreate(Bundle savedInstanceState) {
+    private WebView webView;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CustomTabsIntent intent = new CustomTabsIntent.Builder().build();
-        intent.launchUrl(this, Uri.parse(URL));
+        webView = new WebView(this);
+        setContentView(webView);
+
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+
+        webView.setWebViewClient(new WebViewClient());
+        webView.loadUrl("file:///android_asset/index.html");
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }
