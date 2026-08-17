@@ -1,4 +1,4 @@
-// Mission Learning OS — Responsive / Safe Area Layer v1.0
+// Mission Learning OS — Responsive / Safe Area Layer v1.1
 // Visual-only layer. Keeps content clear of Android/iOS status bars and improves mobile/tablet sizing.
 (() => {
   if (document.getElementById('responsive-safe-area-v1')) return;
@@ -7,7 +7,8 @@
   style.textContent = `
     :root{--mlos-cream:#f7f3eb;--mlos-safe-top:max(22px,env(safe-area-inset-top))}
     html,body{min-width:0;overflow-x:hidden}
-    body{background:linear-gradient(180deg,#252d28 0px,#3e4841 42px,#73796f 88px,#b8b8aa 145px,#e5e1d7 205px,var(--mlos-cream) 285px,var(--mlos-cream) 100%) !important;background-attachment:fixed !important}
+    /* Shorter top fade: roughly one-third of the previous vertical gradient span. */
+    body{background:linear-gradient(180deg,#252d28 0px,#3e4841 14px,#73796f 30px,#b8b8aa 48px,#e5e1d7 70px,var(--mlos-cream) 95px,var(--mlos-cream) 100%) !important;background-attachment:fixed !important}
     .main{padding-top:calc(var(--mlos-safe-top) + 24px) !important}
     .side{padding-top:calc(var(--mlos-safe-top) + 10px) !important}
     .app{background:transparent !important}
