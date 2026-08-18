@@ -16,7 +16,7 @@
       --accent: #1e5a47;
       --black: #111111;
       --sidebar-width: 68px;
-      --top-gradient-height: 68px;
+      --top-gradient-height: 42px;
       --radius-lg: 20px;
       --radius-md: 16px;
       --radius-sm: 14px;
