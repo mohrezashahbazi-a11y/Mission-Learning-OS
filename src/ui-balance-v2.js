@@ -453,22 +453,43 @@
     });
   }
 
-  function injectSidebarIcons() {
-    const items = document.querySelectorAll(
-      '.sidebar button, .sidebar .nav-item, .sidebar .tab-item, .side-nav button, .side-nav .nav-item, .left-rail button'
-    );
+ function detectIcon(item) {
+  const text = (
+    item.dataset.page ||
+    item.dataset.tab ||
+    item.getAttribute('aria-label') ||
+    item.getAttribute('title') ||
+    item.textContent ||
+    ''
+  ).toLowerCase();
 
-    const order = ['home', 'cloud', 'medal', 'chart', 'refresh', 'review', 'calendar', 'book', 'queue'];
+  if (text.includes('dashboard') || text.includes('home')) return 'home';
+  if (text.includes('mission') || text.includes('queue')) return 'queue';
+  if (text.includes('curriculum') || text.includes('source')) return 'book';
+  if (text.includes('timeline') || text.includes('deadline') || text.includes('mentor')) return 'calendar';
+  if (text.includes('review') || text.includes('error')) return 'review';
+  if (text.includes('adaptive')) return 'refresh';
+  if (text.includes('mastery')) return 'medal';
+  if (text.includes('analytics') || text.includes('performance')) return 'chart';
+  if (text.includes('cloud') || text.includes('sync') || text.includes('google')) return 'cloud';
 
-    items.forEach((item, idx) => {
-      if (item.dataset.iconInjected === '1') return;
-      item.dataset.iconInjected = '1';
-      const iconName = order[idx] || 'dot';
-      item.innerHTML = '';
-      item.appendChild(svgIcon(iconName));
-    });
-  }
+  return 'dot';
+}
 
+function injectSidebarIcons() {
+  const items = document.querySelectorAll(
+    '.sidebar button, .sidebar .nav-item, .sidebar .tab-item, .side-nav button, .side-nav .nav-item, .left-rail button'
+  );
+
+  items.forEach(item => {
+    const iconName = detectIcon(item);
+
+    item.innerHTML = '';
+    item.appendChild(svgIcon(iconName));
+
+    item.dataset.iconInjected = '1';
+  });
+}
   function apply() {
     injectLogo();
     injectSidebarIcons();
