@@ -1,6 +1,5 @@
 (function () {
   const STYLE_ID = 'ui-balance-v2-style';
-  if (document.getElementById(STYLE_ID)) return;
 
   const style = document.createElement('style');
   style.id = STYLE_ID;
@@ -475,7 +474,34 @@
     injectSidebarIcons();
   }
 
+function ensureFinalStyle() {
+  const current = document.getElementById(STYLE_ID);
+
+  if (current) {
+    document.head.appendChild(current);
+  }
+}
+
+function apply() {
+  injectLogo();
+  injectSidebarIcons();
+  ensureFinalStyle();
+}
+
+apply();
+
+const observer = new MutationObserver(() => {
   apply();
-  const observer = new MutationObserver(() => apply());
-  observer.observe(document.body, { childList: true, subtree: true });
+});
+
+observer.observe(document.documentElement, {
+  childList: true,
+  subtree: true
+});
+
+setInterval(() => {
+  ensureFinalStyle();
+  injectLogo();
+  injectSidebarIcons();
+}, 500);
 })();
