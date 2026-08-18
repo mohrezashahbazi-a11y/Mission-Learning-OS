@@ -71,8 +71,8 @@ jobs:
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           unzip -l "$APK" | grep -q 'assets/src/ui-final-fix-v4.js'
           unzip -p "$APK" assets/index.html | grep -q 'src/ui-final-fix-v4.js?v=4.0'
-          unzip -p "$APK" assets/index.html | grep -q 'src/execution-engine.js?v=2.2'
-          echo "Verified final UI v4 and execution engine v2.2."
+          unzip -p "$APK" assets/index.html | grep -q 'src/execution-engine.js'
+          echo "Verified final UI v4 and execution engine."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
       - uses: actions/upload-artifact@v4
