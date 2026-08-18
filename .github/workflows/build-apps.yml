@@ -65,14 +65,20 @@ jobs:
       - name: Build standalone Android APK
         working-directory: android
         run: gradle :app:assembleDebug --no-daemon
-      - name: Verify final UI layer is packaged
+      - name: Verify APK and final UI layer
+        shell: bash
         run: |
           set -euo pipefail
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          unzip -l "$APK" | grep -q 'assets/src/ui-final-fix-v4.js'
-          unzip -p "$APK" assets/index.html | grep -q 'src/ui-final-fix-v4.js?v=4.0'
-          unzip -p "$APK" assets/index.html | grep -q 'src/execution-engine.js'
-          echo "Verified final UI v4 and execution engine."
+          test -s "$APK"
+          rm -rf /tmp/mission-apk-check
+          mkdir -p /tmp/mission-apk-check
+          unzip -q "$APK" -d /tmp/mission-apk-check
+          test -f /tmp/mission-apk-check/assets/src/ui-final-fix-v4.js
+          test -f /tmp/mission-apk-check/assets/src/execution-engine.js
+          test -f /tmp/mission-apk-check/assets/index.html
+          grep -Fq 'src/ui-final-fix-v4.js?v=4.0' /tmp/mission-apk-check/assets/index.html
+          echo "Verified APK, final UI v4, and execution engine."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
       - uses: actions/upload-artifact@v4
