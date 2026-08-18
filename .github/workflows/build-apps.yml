@@ -43,7 +43,7 @@ jobs:
           curl -fsSL https://services.gradle.org/distributions/gradle-9.5.1-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
           echo /opt/gradle-9.5.1/bin >> "$GITHUB_PATH"
-      - name: Package exact app with full runtime stack and premium UI
+      - name: Package exact app with full runtime stack and balanced UI
         shell: bash
         run: |
           set -euo pipefail
@@ -53,24 +53,81 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-          p=Path('/tmp/mission-index.html')
-          s=p.read_text(encoding='utf-8')
-          names=['runtime','review-runtime','application-readiness','application-core','application-dependencies','timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history','execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display','daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display','execution-guide','execution-guide-help','execution-guide-v2','cream-theme','luxury-theme','responsive-safe-area','supabase-config','supabase-client','time-aware-greeting','mastery-engine','mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync','google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start','ui-professional-polish','ui-final-fix-v4','ui-premium-v1']
+
+          p = Path('/tmp/mission-index.html')
+          s = p.read_text(encoding='utf-8')
+
+          names = [
+            'runtime','review-runtime','application-readiness','application-core','application-dependencies',
+            'timeline','deadline-sync','director-engine','next-action','execution-policy','execution-history',
+            'execution-timer-bridge','execution-engine','execution-control-fix','adaptive-execution','priority-display',
+            'daily-state','daily-log-editor','ui-cleanup','mentoring-manager','iran-clock','rest-day','date-display',
+            'execution-guide','execution-guide-help','execution-guide-v2','cream-theme','luxury-theme',
+            'responsive-safe-area','supabase-config','supabase-client','time-aware-greeting','mastery-engine',
+            'mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync',
+            'google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start',
+            'ui-professional-polish','ui-final-fix-v4','ui-premium-v1','ui-balance-v2'
+          ]
+
           for name in names:
-              s=re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>','',s)
-          tags=[
+              s = re.sub(rf'<script src="src/{name}\.js(?:\?v=[^"]+)?"></script>', '', s)
+
+          tags = [
             '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>',
-            '<script src="src/fresh-start.js?v=1.0"></script>','<script src="src/application-core.js?v=0.1"></script>','<script src="src/application-dependencies.js?v=0.1"></script>','<script src="src/application-readiness.js?v=0.2"></script>','<script src="src/timeline.js?v=0.2"></script>','<script src="src/iran-clock.js?v=0.2"></script>','<script src="src/date-display.js?v=0.2"></script>','<script src="src/deadline-sync.js?v=0.4"></script>','<script src="src/runtime.js?v=0.9"></script>','<script src="src/director-engine.js?v=0.2"></script>','<script src="src/next-action.js?v=0.4"></script>','<script src="src/execution-policy.js?v=0.1"></script>','<script src="src/execution-history.js?v=1.7"></script>','<script src="src/execution-timer-bridge.js?v=1.1"></script>','<script src="src/execution-engine.js?v=2.2"></script>','<script src="src/execution-guide.js?v=0.7"></script>','<script src="src/execution-guide-help.js?v=0.1"></script>','<script src="src/execution-guide-v2.js?v=0.8"></script>','<script src="src/adaptive-execution.js?v=1.0"></script>','<script src="src/priority-display.js?v=1.0"></script>','<script src="src/daily-state.js?v=1.0"></script>','<script src="src/daily-log-editor.js?v=1.0"></script>','<script src="src/ui-cleanup.js?v=0.1"></script>','<script src="src/mentoring-manager.js?v=0.3"></script>','<script src="src/rest-day.js?v=0.1"></script>','<script src="src/supabase-config.js?v=1.0"></script>','<script src="src/supabase-client.js?v=1.0"></script>','<script src="src/time-aware-greeting.js?v=1.3"></script>','<script src="src/mastery-engine.js?v=1.1"></script>','<script src="src/mastery-ui.js?v=1.0"></script>','<script src="src/mastery-evidence-adapter.js?v=1.0"></script>','<script src="src/mastery-adaptive-bridge.js?v=1.0"></script>','<script src="src/google-drive-sync.js?v=1.8"></script>','<script src="src/google-drive-sync-ui.js?v=1.0"></script>','<script src="src/cloud-foundation.js?v=1.2"></script>','<script src="src/analytics-engine.js?v=1.0"></script>','<script src="src/analytics-ui.js?v=1.2"></script>','<script src="src/ui-balance-v2.js?v=2.0"></script>'
-          for tag in tags: s=s.replace('</body>',tag+'</body>')
-          p.write_text(s,encoding='utf-8')
+            '<script src="src/fresh-start.js?v=1.0"></script>',
+            '<script src="src/application-core.js?v=0.1"></script>',
+            '<script src="src/application-dependencies.js?v=0.1"></script>',
+            '<script src="src/application-readiness.js?v=0.2"></script>',
+            '<script src="src/timeline.js?v=0.2"></script>',
+            '<script src="src/iran-clock.js?v=0.2"></script>',
+            '<script src="src/date-display.js?v=0.2"></script>',
+            '<script src="src/deadline-sync.js?v=0.4"></script>',
+            '<script src="src/runtime.js?v=0.9"></script>',
+            '<script src="src/director-engine.js?v=0.2"></script>',
+            '<script src="src/next-action.js?v=0.4"></script>',
+            '<script src="src/execution-policy.js?v=0.1"></script>',
+            '<script src="src/execution-history.js?v=1.7"></script>',
+            '<script src="src/execution-timer-bridge.js?v=1.1"></script>',
+            '<script src="src/execution-engine.js?v=2.2"></script>',
+            '<script src="src/execution-guide.js?v=0.7"></script>',
+            '<script src="src/execution-guide-help.js?v=0.1"></script>',
+            '<script src="src/execution-guide-v2.js?v=0.8"></script>',
+            '<script src="src/adaptive-execution.js?v=1.0"></script>',
+            '<script src="src/priority-display.js?v=1.0"></script>',
+            '<script src="src/daily-state.js?v=1.0"></script>',
+            '<script src="src/daily-log-editor.js?v=1.0"></script>',
+            '<script src="src/ui-cleanup.js?v=0.1"></script>',
+            '<script src="src/mentoring-manager.js?v=0.3"></script>',
+            '<script src="src/rest-day.js?v=0.1"></script>',
+            '<script src="src/supabase-config.js?v=1.0"></script>',
+            '<script src="src/supabase-client.js?v=1.0"></script>',
+            '<script src="src/time-aware-greeting.js?v=1.3"></script>',
+            '<script src="src/mastery-engine.js?v=1.1"></script>',
+            '<script src="src/mastery-ui.js?v=1.0"></script>',
+            '<script src="src/mastery-evidence-adapter.js?v=1.0"></script>',
+            '<script src="src/mastery-adaptive-bridge.js?v=1.0"></script>',
+            '<script src="src/google-drive-sync.js?v=1.8"></script>',
+            '<script src="src/google-drive-sync-ui.js?v=1.0"></script>',
+            '<script src="src/cloud-foundation.js?v=1.2"></script>',
+            '<script src="src/analytics-engine.js?v=1.0"></script>',
+            '<script src="src/analytics-ui.js?v=1.2"></script>',
+            '<script src="src/ui-balance-v2.js?v=2.0"></script>'
+          ]
+
+          for tag in tags:
+              s = s.replace('</body>', tag + '</body>')
+
+          p.write_text(s, encoding='utf-8')
           PY
           cp /tmp/mission-index.html android/app/src/main/assets/index.html
           cp -R src android/app/src/main/assets/src
-          for f in execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do test -f "android/app/src/main/assets/src/$f"; done
+          for f in ui-balance-v2.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
+            test -f "android/app/src/main/assets/src/$f"
+          done
       - name: Build standalone Android APK
         working-directory: android
         run: gradle :app:assembleDebug --no-daemon
-      - name: Verify APK and full runtime stack plus premium UI
+      - name: Verify APK and full runtime stack plus balanced UI
         shell: bash
         run: |
           set -euo pipefail
@@ -78,11 +135,13 @@ jobs:
           test -s "$APK"
           rm -rf /tmp/mission-apk-check && mkdir -p /tmp/mission-apk-check
           unzip -q "$APK" -d /tmp/mission-apk-check
-          for f in  execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do test -f "/tmp/mission-apk-check/assets/src/$f"; done
+          for f in ui-balance-v2.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
+            test -f "/tmp/mission-apk-check/assets/src/$f"
+          done
           grep -Fq 'src/ui-balance-v2.js?v=2.0' /tmp/mission-apk-check/assets/index.html
           grep -Fq 'src/execution-engine.js?v=2.2' /tmp/mission-apk-check/assets/index.html
           grep -Fq 'src/director-engine.js?v=0.2' /tmp/mission-apk-check/assets/index.html
-          echo "Verified premium UI layer and complete runtime stack."
+          echo "Verified balanced UI layer and complete runtime stack."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
       - uses: actions/upload-artifact@v4
