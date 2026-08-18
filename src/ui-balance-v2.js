@@ -152,7 +152,7 @@
     h1,
     .page-title,
     .hero-title {
-      font-size: 19px !important;
+      font-size: 16px !important;
       line-height: 1.24 !important;
       letter-spacing: -0.03em !important;
       font-weight: 800 !important;
@@ -163,7 +163,7 @@
 
     h2,
     .section-title {
-      font-size: 15px !important;
+      font-size: 13px !important;
       line-height: 1.3 !important;
       font-weight: 750 !important;
       margin: 0 0 10px !important;
@@ -196,7 +196,7 @@
     .muted,
     .helper-text,
     .body-text {
-      font-size: 12px !important;
+      font-size: 10.5px !important;
       line-height: 1.62 !important;
       color: var(--muted) !important;
       margin: 0 0 12px !important;
@@ -242,7 +242,7 @@
 
     .mission-card h3,
     .mission-title {
-      font-size: 13px !important;
+      font-size: 11.5px !important;
       line-height: 1.35 !important;
       font-weight: 760 !important;
       margin-bottom: 6px !important;
@@ -352,8 +352,8 @@
     /* ---------- responsive ---------- */
     @media (min-width: 768px) {
       :root{
-        --sidebar-width: 74px;
-        --top-gradient-height: 70px;
+        --sidebar-width: 72px;
+        --top-gradient-height: 44px;
       }
 
       h1,
