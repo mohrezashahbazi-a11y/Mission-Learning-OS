@@ -1,4 +1,4 @@
-# Final UI build trigger — preserve full Android runtime stack
+# Stable unified UI build — preserve full runtime stack
 name: Build Mission OS Apps
 
 on:
@@ -43,7 +43,7 @@ jobs:
           curl -fsSL https://services.gradle.org/distributions/gradle-9.5.1-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
           echo /opt/gradle-9.5.1/bin >> "$GITHUB_PATH"
-      - name: Package exact app with full runtime stack and balanced UI
+      - name: Package app with full runtime stack and stable UI v3
         shell: bash
         run: |
           set -euo pipefail
@@ -66,7 +66,7 @@ jobs:
             'responsive-safe-area','supabase-config','supabase-client','time-aware-greeting','mastery-engine',
             'mastery-ui','mastery-evidence-adapter','mastery-adaptive-bridge','google-drive-auth','google-drive-sync',
             'google-drive-sync-ui','cloud-foundation','analytics-engine','analytics-ui','fresh-start',
-            'ui-professional-polish','ui-final-fix-v4','ui-premium-v1','ui-balance-v2'
+            'ui-professional-polish','ui-final-fix-v4','ui-premium-v1','ui-balance-v2','ui-stable-v3'
           ]
 
           for name in names:
@@ -96,7 +96,6 @@ jobs:
             '<script src="src/priority-display.js?v=1.0"></script>',
             '<script src="src/daily-state.js?v=1.0"></script>',
             '<script src="src/daily-log-editor.js?v=1.0"></script>',
-            '<script src="src/ui-cleanup.js?v=0.1"></script>',
             '<script src="src/mentoring-manager.js?v=0.3"></script>',
             '<script src="src/rest-day.js?v=0.1"></script>',
             '<script src="src/supabase-config.js?v=1.0"></script>',
@@ -111,7 +110,7 @@ jobs:
             '<script src="src/cloud-foundation.js?v=1.2"></script>',
             '<script src="src/analytics-engine.js?v=1.0"></script>',
             '<script src="src/analytics-ui.js?v=1.2"></script>',
-            '<script src="src/ui-balance-v2.js?v=2.0"></script>'
+            '<script src="src/ui-stable-v3.js?v=3.0"></script>'
           ]
 
           for tag in tags:
@@ -121,13 +120,13 @@ jobs:
           PY
           cp /tmp/mission-index.html android/app/src/main/assets/index.html
           cp -R src android/app/src/main/assets/src
-          for f in ui-balance-v2.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
+          for f in ui-stable-v3.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
             test -f "android/app/src/main/assets/src/$f"
           done
       - name: Build standalone Android APK
         working-directory: android
         run: gradle :app:assembleDebug --no-daemon
-      - name: Verify APK and full runtime stack plus balanced UI
+      - name: Verify APK and full runtime stack plus stable UI v3
         shell: bash
         run: |
           set -euo pipefail
@@ -135,13 +134,17 @@ jobs:
           test -s "$APK"
           rm -rf /tmp/mission-apk-check && mkdir -p /tmp/mission-apk-check
           unzip -q "$APK" -d /tmp/mission-apk-check
-          for f in ui-balance-v2.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
+          for f in ui-stable-v3.js execution-engine.js runtime.js director-engine.js adaptive-execution.js mastery-engine.js google-drive-sync.js analytics-engine.js; do
             test -f "/tmp/mission-apk-check/assets/src/$f"
           done
-          grep -Fq 'src/ui-balance-v2.js?v=2.0' /tmp/mission-apk-check/assets/index.html
+          grep -Fq 'src/ui-stable-v3.js?v=3.0' /tmp/mission-apk-check/assets/index.html
           grep -Fq 'src/execution-engine.js?v=2.2' /tmp/mission-apk-check/assets/index.html
           grep -Fq 'src/director-engine.js?v=0.2' /tmp/mission-apk-check/assets/index.html
-          echo "Verified balanced UI layer and complete runtime stack."
+          if grep -Fq 'src/ui-cleanup.js' /tmp/mission-apk-check/assets/index.html; then
+            echo "Legacy ui-cleanup.js must not be packaged" >&2
+            exit 1
+          fi
+          echo "Verified stable UI v3 and complete runtime stack."
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk mission-learning-os-final-web.apk
       - uses: actions/upload-artifact@v4
